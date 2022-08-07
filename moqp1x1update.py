@@ -35,22 +35,22 @@ STARTDATE = 'April 3, 2022'
 ENDDATE = 'April 4, 2022'
 				
 class moqpseReport():
-	def __init__(self, alist=None, sdate=None, edate=None):
+	def __init__(self, calls=None, sdate=None, edate=None):
 		self.seStations = dict()
-		if alist == None:
+		if calls == None:
 			print('default')
 			selist = SECALLS
-		elif isinstance(alist, list):
+		elif isinstance(calls, list):
 			print('custom')
-			selist = alist
+			selist = calls
 		else:
 			print('single call')
-			selist = [alist]			
+			selist = [calls]			
 
 		for key in selist:
 			self.seStations[key] = None
 			
-		if alist and sdate and edate:
+		if calls and sdate and edate:
 			self.appMain(selist, sdate, edate)
 		
 	def get_seStation(self, secall, start_d, end_d):
@@ -93,7 +93,6 @@ class moqpseReport():
 			  
 if __name__ == '__main__':
     
-	mylist=['N0H','W0W', 'K0B']
-	se=moqpseReport(mylist, STARTDATE, ENDDATE)
-	for station in mylist:
+	se=moqpseReport(calls=SECALLS, sdate=STARTDATE, edate=ENDDATE)
+	for station in SECALLS:
 		se.seStations[station].show_params()

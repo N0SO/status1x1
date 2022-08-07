@@ -2,6 +2,8 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
+
 from time import sleep, strftime
 from datetime import datetime
 import sys
@@ -69,11 +71,14 @@ class specialEventStation():
                                 self.opaddress))
                 
         
-    def get_seCall(self, call, start_date, end_date):
+    def get_seCall(self, call, start_date, end_date, searchlimit = 15):
         """
         Look up who holds the Special Event 1x1 callsign
         specified in call between the dates start_date and
         end_date. Populate the self.opxxxx data in the object.
+        By default, it searches the first 15 records. To search more,
+        add:
+         searchlimit = nn (where nn is the number of records to search).
         Return True if successful, or False if not found.
         """
         secall = call.upper()
@@ -84,15 +89,23 @@ class specialEventStation():
         sleep(3)
         
         # Select the callsign search box
-        sbox=dr.find_element(By.XPATH,"//body[1]/div[1]/div[1]/div[1]/div[2]/div[4]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/form[1]/table[1]/tbody[1]/tr[1]/td[1]/input[1]")
+        textbox_xpath = "//body[1]/div[1]/div[1]/div[1]/div[2]/div[4]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/form[1]/table[1]/tbody[1]/tr[1]/td[1]/input[1]"
+        sbox=dr.find_element(By.XPATH,textbox_xpath)
 
-        # Sending the target call to search field
-        sbox.send_keys(secall)
-        sleep(3) 
+        """
+        Sending the target call to search field
+        NOTE: Chromium and FireFox drivers have trouble sending some 
+            characters (at least the RPI versions do). Most notably
+            the 'S' character. It would not be passed to the input box
+            in the form. The work around (found on StackOverflow) was
+            to call a javascript snippit to enter the text in the
+            callsign search box. Use the method write_to_element()
+            instead of send_keys() method for the work around.
+        """
+        #self.send_keys(sbox, secall)
+        self.write_to_element(dr, textbox_xpath, secall)
         
-        # Pressing enter to search input text
-        sbox.send_keys(Keys.ENTER)
-        sleep(10)
+        sleep(5)
 
         # Iterate thru table elements until a date match is found.
         r=c=1
@@ -116,12 +129,14 @@ class specialEventStation():
                 sename=tbox.text
             elif c==5:
                 morelink=tbox.text
-                if (self.start>=st) and (self.end<=et):
-                    print('{} Match found! {}'.format(secall,
-                                                        self.callsign))
+                if ((self.start>=st) and (self.start<=et)) or\
+                                ((self.end>=st) and (self.end<=et)):
+                    print('{} Match found! {}'.format(c, secall))
                     no_match = False
                     break
                 r+=1
+                if r>= searchlimit:
+                    break
                 c=1
             c += 1
         
@@ -144,6 +159,35 @@ class specialEventStation():
         self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
         self.opemail = dr.find_element(By.XPATH, '//tbody/tr[9]/td[2]').text
         self.opphone = dr.find_element(By.XPATH, '//tbody/tr[10]/td[2]').text
+        return True
+        
+    def send_keys(self, el: WebElement, keys: str):
+        """
+        Send string to an element using the webdriver send_keys method.
+        NOTE: This does not work for the chromium driver on an RPI.
+        Use the write_to_element() method below as a work around.
+        """
+        for i in range(len(keys)):
+            el.send_keys(keys[i])
+            sleep(1)
+        el.send_keys(Keys.ENTER)
+        return True
+
+    def write_to_element(self, driver, xpath, input_string): 
+        """
+        NOTE: Chromium and FireFox drivers have trouble sending some 
+            characters (at least the RPI versions do). Most notably
+            the 'S' character. It would not be passed to the input box
+            in the form. The work around (found on StackOverflow) was
+            to call a javascript snippit to enter the text in the
+            callsign search box. Use the method write_to_element()
+            instead of send_keys() method for the work around.
+        """
+        el=driver.find_element(By.XPATH, xpath)
+        js_command = f'document.evaluate(\'{xpath}\', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value = \'{input_string}\';'
+        driver.execute_script(js_command)
+        sleep(2)
+        el.send_keys(Keys.ENTER)
         return True
         
 if __name__ == '__main__':

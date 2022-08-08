@@ -25,24 +25,36 @@ class specialEventStation():
         """
         
         self.callsign=callsign
-        self.start=datetime.strptime(Start_date, TIMEFMT)
-        self.end=datetime.strptime(End_date, TIMEFMT)
+        """
+        Convert target Special Event dates to 
+        datetime objects if passed in
+        """
+        if isinstance(Start_date, str):
+            self.tstart=datetime.strptime(Start_date, TIMEFMT)        
+        else:
+            self.tstart=Start_date
+        if isinstance(End_date, str):
+            self.tend=datetime.strptime(End_date, TIMEFMT)
+        else:
+            self.tend=End_date   
         
-        self.opcall=None,
-        self.opname=None,
-        self.opemail=None,
+        self.opcall=None
+        self.opname=None
+        self.opemail=None
         self.opaddress=None
         self.opphone=None
         self.sename=None
-        
+        self.startdate=None
+        self.enddate = None
+       
         #print(callsign, Start_date, End_date)
         
-        if (callsign and \
-            Start_date and \
-            End_date):
-                self.get_seCall(callsign,
-                                Start_date,
-                                End_date)
+        if (self.callsign and \
+              self.tstart and \
+              self.tend):
+                self.get_seCall(self.callsign,
+                                self.tstart,
+                                self.tend)
         
     def get_params(self):
         return  self.callsign,\
@@ -86,7 +98,7 @@ class specialEventStation():
         
         # Navigate to the callsign search page
         dr.get('http://www.1x1callsigns.org/index.php/search')
-        sleep(3)
+        sleep(5)
         
         # Select the callsign search box
         textbox_xpath = "//body[1]/div[1]/div[1]/div[1]/div[2]/div[4]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/form[1]/table[1]/tbody[1]/tr[1]/td[1]/input[1]"
@@ -105,7 +117,7 @@ class specialEventStation():
         #self.send_keys(sbox, secall)
         self.write_to_element(dr, textbox_xpath, secall)
         
-        sleep(5)
+        sleep(2)
 
         # Iterate thru table elements until a date match is found.
         r=c=1
@@ -129,9 +141,9 @@ class specialEventStation():
                 sename=tbox.text
             elif c==5:
                 morelink=tbox.text
-                if ((self.start>=st) and (self.start<=et)) or\
-                                ((self.end>=st) and (self.end<=et)):
-                    print('{} Match found! {}'.format(c, secall))
+                if ((start_date>=st) and (start_date<=et)) or\
+                                ((end_date>=st) and (end_date<=et)):
+                    print('{} Match found! {}'.format(r, secall))
                     no_match = False
                     break
                 r+=1
@@ -145,8 +157,8 @@ class specialEventStation():
             print('No match found for call {}'.format(self.callsign))
             return False
             
-        self.start=st
-        self.end=et
+        self.startdate=st
+        self.enddate=et
         self.sename=sename
         tbox.click() # Move to details page using link from page
         sleep(5)

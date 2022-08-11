@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from ses import SES
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -13,76 +14,23 @@ April 4, 2022 for example
 """
 TIMEFMT='%B %d, %Y'
 
-class specialEventStation():
-    
+class specialEventStation(SES):
     def __init__(self,
                  callsign=None,
                  Start_date=None,
                  End_date=None):
         """
-        Intialize the data structure and look up
-        the SE call if initialization data provided.
+        Call parent class  __init__() method to initialize  structure
         """
-        
-        self.callsign=callsign
-        """
-        Convert target Special Event dates to 
-        datetime objects if passed in
-        """
-        if isinstance(Start_date, str):
-            self.tstart=datetime.strptime(Start_date, TIMEFMT)        
-        else:
-            self.tstart=Start_date
-        if isinstance(End_date, str):
-            self.tend=datetime.strptime(End_date, TIMEFMT)
-        else:
-            self.tend=End_date   
-        
-        self.opcall=None
-        self.opname=None
-        self.opemail=None
-        self.opaddress=None
-        self.opphone=None
-        self.sename=None
-        self.startdate=None
-        self.enddate = None
-       
-        #print(callsign, Start_date, End_date)
-        
+        super().__init__(callsign, Start_date, End_date)
+
         if (self.callsign and \
               self.tstart and \
               self.tend):
                 self.get_seCall(self.callsign,
                                 self.tstart,
                                 self.tend)
-        
-    def get_params(self):
-        return  self.callsign,\
-                self.sename,\
-                self.opcall,\
-                self.opname,\
-                self.opemail,\
-                self.opphone,\
-                self.opaddress
-                
-    def show_params(self):
-        fmtstg='Special Event Call: {}\n'+\
-                'Special Event Name: {}\n'+\
-                'Operator Call: {}\n'+\
-                'Operator Name: {}\n'+\
-                'Operator e-mail: {}\n'+\
-                'Operator phone: {}\n'+\
-                'Operator address: {}'
-                
-        print(fmtstg.format(  self.callsign,
-                                self.sename,
-                                self.opcall,
-                                self.opname,
-                                self.opemail,
-                                self.opphone,
-                                self.opaddress))
-                
-        
+
     def get_seCall(self, call, start_date, end_date, searchlimit = 15):
         """
         Look up who holds the Special Event 1x1 callsign

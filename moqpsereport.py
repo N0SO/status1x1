@@ -118,3 +118,4 @@ if __name__ == '__main__':
     se.stations['W0W'].opcall='AA0Z'
     """
     tsvList = se.makeTSV('SHOWME')
+    tsvList = se.makeTSV('MO')

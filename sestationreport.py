@@ -58,3 +58,4 @@ if __name__ == '__main__':
     se=moqpseReport(args.calls, args.startdate, args.enddate)
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')
+    htmlList = se.makeHTML()

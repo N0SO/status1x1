@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from specialeventstation import specialEventStation
 from time import sleep
+from htmlutils.htmldoc import *
+from moqputils.configs.moqpdbconfig import YEAR
 import csv
 #from htmlutils import htmldoc
 
@@ -83,6 +85,84 @@ class moqpseReport():
                                   self.stations[awlist[i+2]].opcall])
                 i+=3
 
+    def makeHTML(self):
+        TABLEHEADER=[' ','K0','N0','W0']
+        d = htmlDoc()
+        d.openHead('{} Missouri QSO Party Special Event Stations'.format(YEAR),
+			  './styles.css')
+        d.closeHead()
+        d.openBody()
+					 
+        d.add_unformated_text(\
+		 """<h2 align='center'>{} Missouri QSO Party Special Event Stations</h2>""".format(YEAR))
+        d.addTimeTag(prefix='Updated: ') 
+		 
+        d.add_unformated_text(\
+		"""
+		<p align="center">Thank You to our 1x1 Special Event Operators!<br>
+						  You make the contest more fun for the rest of us!</p>
+		""")
+	
+        """
+        Code to get SHOWME table date goes here
+        """
+        showme = [TABLEHEADER]
+        maxl=len(SHOWMELIST)
+        i=0
+        while i < maxl:
+            showme.append(	[SHOWMELIST[i][2:],
+                            self.stations[SHOWMELIST[i]].opcall,
+                            self.stations[SHOWMELIST[i+1]].opcall,
+                            self.stations[SHOWMELIST[i+2]].opcall] )
+            i += 3
+        
+
+        d.addTable( tdata=showme, 
+            header=True,
+                    caption='SHOWME 1x1 Ops' )
+
+        """
+        Code to get MISSOURI table date goes here
+        """
+        showme = [TABLEHEADER]
+        maxl=len(MOLIST)
+        i=0
+        while i < maxl:
+            showme.append(	[MOLIST[i][2:],
+                            self.stations[MOLIST[i]].opcall,
+                            self.stations[MOLIST[i+1]].opcall,
+                            self.stations[MOLIST[i+2]].opcall ])
+            i += 3
+        
+
+        d.addTable( tdata=showme, 
+                header=True,
+                caption='MISSOURI 1x1 Ops' )
+            
+        d.add_unformated_text(\
+        """
+        <p align="center">
+        As you work people in the contest with these 1x1 callsigns, the last letter
+        of the 1x1 callsign may be used to spell out one letter in a phrase. The
+        phrases for this year will be SHOW ME and MISSOURI. You will receive a
+        handsome certificate if you complete one or both of the phrases!
+        </p>
+                
+            <p align="center" style="font-family: Consolas, Terminal, Menlo, Arial">
+        Example: n0S w0H k0O n0W k0M n0E
+        </p>	  
+        """)
+
+        d.closeBody()
+        d.closeDoc()
+
+        d.showDoc()
+        d.saveAndView('moqp1x1ses.html')
+
+
+
+
+
 
     def appMain(self, callList, SD, ED ):
         """
@@ -107,15 +187,41 @@ class moqpseReport():
 			  
 if __name__ == '__main__':
 
-    se=moqpseReport(calls=SECALLS, sdate=STARTDATE, edate=ENDDATE)
-    #se = moqpseReport()
+    #se=moqpseReport(calls=SECALLS, sdate=STARTDATE, edate=ENDDATE)
+    se = moqpseReport()
 
-    """
-    for station in SECALLS:
-        se.seStations[station].show_params()
-    se.stations['N0H'].opcall='AB0RX'
+    se.stations['K0S'].opcall=None
+    se.stations['N0S'].opcall='AI6O'
     se.stations['W0S'].opcall='WA0JCO'
+    se.stations['K0H'].opcall='N0ZNA'
+    se.stations['N0H'].opcall='AB0RX'
+    se.stations['W0H'].opcall=None
+    se.stations['K0O'].opcall='N0BDS'
+    se.stations['N0O'].opcall='KK0U'
+    se.stations['W0O'].opcall=None
+    se.stations['K0W'].opcall='K8MCN'
+    se.stations['N0W'].opcall='W0PF'
     se.stations['W0W'].opcall='AA0Z'
-    """
+    se.stations['K0M'].opcall='W0HBH'
+    se.stations['N0M'].opcall='N0ZIB'
+    se.stations['W0M'].opcall='W0MB'
+    se.stations['K0E'].opcall='WB0QLU'
+    se.stations['N0E'].opcall='N0NEB'
+    se.stations['W0E'].opcall='WA0O'
+    se.stations['K0I'].opcall='KI0I'
+    se.stations['N0I'].opcall='KD0NEO'
+    se.stations['W0I'].opcall='N0MII'
+    se.stations['K0R'].opcall=None
+    se.stations['N0R'].opcall=None
+    se.stations['W0R'].opcall='W0EO'
+    se.stations['K0U'].opcall='W0ECC'
+    se.stations['N0U'].opcall=None
+    se.stations['W0U'].opcall=None
+    for station in SECALLS:
+        se.stations[station].show_params()
+
+
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')
+    
+    htmlList = se.makeHTML()

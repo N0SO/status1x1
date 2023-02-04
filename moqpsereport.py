@@ -31,7 +31,6 @@ MOLIST =	[	'K0M', 'N0M', 'W0M',
 			'K0S', 'N0S', 'W0S',
 			'K0O', 'N0O', 'W0O',
 			'K0U', 'N0U', 'W0U',
-			'K0E', 'N0E', 'W0E',
 			'K0R', 'N0R', 'W0R',
 			'K0I', 'N0I', 'W0I'	]
 				
@@ -59,7 +58,19 @@ class moqpseReport():
         """    
         if calls and sdate and edate:
             self.appMain(selist, sdate, edate)
-		"""
+	"""
+
+    """
+    If the string value passed is None type, return a
+    single character '-'. Added because blank callsigns
+    were showing up as 'None' in html reports. 
+    """
+    def fix_none(self, stgval):
+        if stgval == None: 
+            return '-'
+        else:
+            return stgval
+
     def get_seStation(self, secall, start_d, end_d):
         self.seStations[secall] = specialEventStation(callsign=secall,
                                                    Start_date=start_d,
@@ -111,9 +122,9 @@ class moqpseReport():
         i=0
         while i < maxl:
             showme.append(	[SHOWMELIST[i][2:],
-                            self.stations[SHOWMELIST[i]].opcall,
-                            self.stations[SHOWMELIST[i+1]].opcall,
-                            self.stations[SHOWMELIST[i+2]].opcall] )
+                            self.fix_none(self.stations[SHOWMELIST[i]].opcall),
+                            self.fix_none(self.stations[SHOWMELIST[i+1]].opcall),
+                            self.fix_none(self.stations[SHOWMELIST[i+2]].opcall)] )
             i += 3
         
 
@@ -129,9 +140,9 @@ class moqpseReport():
         i=0
         while i < maxl:
             showme.append(	[MOLIST[i][2:],
-                            self.stations[MOLIST[i]].opcall,
-                            self.stations[MOLIST[i+1]].opcall,
-                            self.stations[MOLIST[i+2]].opcall ])
+                            self.fix_none(self.stations[MOLIST[i]].opcall),
+                            self.fix_none(self.stations[MOLIST[i+1]].opcall),
+                            self.fix_none(self.stations[MOLIST[i+2]].opcall) ])
             i += 3
         
 

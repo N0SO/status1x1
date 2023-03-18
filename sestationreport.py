@@ -41,6 +41,12 @@ def parseMyArgs():
             help="""The report type (csv or html).""",
             default='csv')
 
+    parser.add_argument(\
+            "-d", "--display", 
+            help="""Display the browser and show activity.
+                    Default is to run "headless" (no display)..""",
+            default=True, action = 'store_false')
+
     parser.add_argument('--version',
                         help='Display version and exit',
                         action='version', 
@@ -55,7 +61,10 @@ if __name__ == '__main__':
 
     args = parseMyArgs()
 
-    se=moqpseReport(args.calls, args.startdate, args.enddate)
+    se=moqpseReport(args.calls, 
+                    args.startdate, 
+                    args.enddate,
+                    args.display)
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')
     htmlList = se.makeHTML()

@@ -38,7 +38,9 @@ STARTDATE = 'April 3, 2022'
 ENDDATE = 'April 4, 2022'
 				
 class moqpseReport():
-    def __init__(self, calls=None, sdate=None, edate=None):
+    def __init__(self, calls=None, sdate=None, edate=None,
+                       headless=True,
+                       searchlimit=15):
         if calls == None:
             print('default')
             selist = SECALLS
@@ -54,7 +56,9 @@ class moqpseReport():
             self.stations.update({key:\
                             specialEventStation(callsign=key,
                             Start_date=sdate,
-                            End_date=edate)})
+                            End_date=edate,
+                            headless=headless,
+                            searchlimit=searchlimit)})
         """    
         if calls and sdate and edate:
             self.appMain(selist, sdate, edate)

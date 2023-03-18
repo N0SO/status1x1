@@ -1,0 +1,22 @@
+#!/usr/bin/bash
+startdate='April 1, 2023'
+enddate='April 2, 2023'
+new='moqp1x1ses.html'
+old='old_moqp1x1ses.html'
+#record start of process
+date
+cd /home/pi/Projects/status1x1
+if [ -f "$new" ]; then
+    rm $old
+    mv $new $old
+fi
+#Fetch allocated calls from 1x1callsigns.org
+./sestationreport.py --startdate "$startdate" --enddate "$enddate"
+if [ -f "$new" ]; then
+    diff $new $old
+else
+    echo "Fetch of updated call list failed to complete."
+fi
+
+#record end of process
+date

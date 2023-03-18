@@ -18,7 +18,9 @@ class specialEventStation(SES):
     def __init__(self,
                  callsign=None,
                  Start_date=None,
-                 End_date=None):
+                 End_date=None,
+                 headless=True,
+                 searchlimit=15):
         """
         Call parent class  __init__() method to initialize  structure
         """
@@ -29,9 +31,13 @@ class specialEventStation(SES):
               self.tend):
                 self.get_seCall(self.callsign,
                                 self.tstart,
-                                self.tend)
+                                self.tend,
+                                headless,
+                                searchlimit)
 
-    def get_seCall(self, call, start_date, end_date, searchlimit = 15):
+    def get_seCall(self, call, start_date, end_date, 
+                         headless = True,
+                         searchlimit = 15):
         """
         Look up who holds the Special Event 1x1 callsign
         specified in call between the dates start_date and
@@ -40,11 +46,23 @@ class specialEventStation(SES):
         add:
          searchlimit = nn (where nn is the number of records to search).
         Return True if successful, or False if not found.
+
+        By default the code runs on a 'virtual browser', so no display
+        is available (or required). This means the code may be executed
+        in a terminal or script. If a display is needed for debug or
+        demo, add:
+         headless=False
         """
         secall = call.upper()
+        """
+        Run headless (no display required)  unless the optional
+        headless parameter is set False by the caller.
+        """
         chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        # chrome_options.headless = True # also works
+        if (headless):
+            chrome_options.add_argument("--headless")
+            # chrome_options.headless = True # also works
+
         dr = webdriver.Chrome(options=chrome_options)
         #dr = webdriver.Chrome()
         

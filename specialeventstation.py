@@ -4,7 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
-
+from selenium.webdriver.chrome.options import Options
 from time import sleep, strftime
 from datetime import datetime
 import sys
@@ -42,7 +42,11 @@ class specialEventStation(SES):
         Return True if successful, or False if not found.
         """
         secall = call.upper()
-        dr = webdriver.Chrome()
+        chrome_options = Options()
+        chrome_options.add_argument("--headless")
+        # chrome_options.headless = True # also works
+        dr = webdriver.Chrome(options=chrome_options)
+        #dr = webdriver.Chrome()
         
         # Navigate to the callsign search page
         dr.get('http://www.1x1callsigns.org/index.php/search')

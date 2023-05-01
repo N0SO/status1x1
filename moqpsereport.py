@@ -100,7 +100,7 @@ class moqpseReport():
                                   self.stations[awlist[i+2]].opcall])
                 i+=3
 
-    def makeHTML(self):
+    def makeHTML(self, headless=True):
         TABLEHEADER=[' ','K0','N0','W0']
         d = htmlDoc()
         d.openHead('{} Missouri QSO Party Special Event Stations'.format(YEAR),
@@ -171,12 +171,32 @@ class moqpseReport():
         d.closeBody()
         d.closeDoc()
 
-        d.showDoc()
-        d.saveAndView('moqp1x1ses.html')
+        if (headless):
+        #d.showDoc()
+            d.saveasFile('moqp1x1ses.html')
+        else:
+            d.saveAndView('moqp1x1ses.html')
 
 
-
-
+    def makeOplist(self):
+        """
+        Show the details for each 1x1 op
+        """  
+        filename = 'operators.csv'
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f, delimiter='\t',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(['CALL ','OP CALL','NAME',
+                             'ADDRESS','EMAIL','PHONE', 'EVENT'])
+            for call in SECALLS:
+                print('Writing line for {}...'.format(call))
+                writer.writerow([call,
+                                self.stations[call].opcall,
+                                self.stations[call].opname,
+                                self.stations[call].opaddress,
+                                self.stations[call].opemail,
+                                self.stations[call].opphone,
+                                self.stations[call].sename])
 
 
     def appMain(self, callList, SD, ED ):

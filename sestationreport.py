@@ -58,7 +58,6 @@ def parseMyArgs():
     
     
 if __name__ == '__main__':
-
     args = parseMyArgs()
 
     se=moqpseReport(args.calls, 
@@ -68,3 +67,4 @@ if __name__ == '__main__':
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')
     htmlList = se.makeHTML()
+    oplist = se.makeOplist()

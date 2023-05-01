@@ -67,9 +67,25 @@ class specialEventStation(SES):
         #dr = webdriver.Chrome()
         
         # Navigate to the callsign search page
+        """
+        This retry code ends up in an endless loop and does not work.
+        Need to figure out why.
+        """
+        #retry=True
+        #while retry:
+        #  try:
+        #      print('Trying...')
         dr.get('http://www.1x1callsigns.org/index.php/search')
         sleep(5)
-        
+        #  except:
+        #    print('Exception...')
+        #    if retry:
+        #        print('Search Timeout - try again')
+        #        retry = False
+        #    else:
+        #        print('Consecutive search timeout - exiting...')
+        #        exit()
+ 
         # Select the callsign search box
         textbox_xpath = "//body[1]/div[1]/div[1]/div[1]/div[2]/div[4]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/form[1]/table[1]/tbody[1]/tr[1]/td[1]/input[1]"
         sbox=dr.find_element(By.XPATH,textbox_xpath)

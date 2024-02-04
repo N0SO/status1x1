@@ -1,6 +1,7 @@
 #!/usr/bin/bash
-startdate='April 1, 2023'
-enddate='April 2, 2023'
+year='2024'
+startdate='April 6, '$year
+enddate='April 7, '$year
 new='moqp1x1ses.html'
 old='old_moqp1x1ses.html'
 #record start of process
@@ -18,5 +19,7 @@ else
     echo "Fetch of updated call list failed to complete."
 fi
 
+#Use scp to copy file to w0ma.org
+scp ./moqp1x1ses.html w0ma@w0ma.org:/home/w0ma/mo_qso_party/results/2024/reports/
 #record end of process
 date

@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 from ses import SES
 from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from time import sleep, strftime
 from datetime import datetime
 import sys
@@ -12,7 +15,8 @@ import sys
 Time format is Month day, YEAR to match the 1x1 source web page.
 April 4, 2022 for example
 """
-TIMEFMT='%B %d, %Y'
+TIMEFMT='%Y-%m-%d'
+SEARCH1X1URL = 'https://www.1x1callsigns.org/1x1search.php'
 
 class specialEventStation(SES):
     def __init__(self,
@@ -53,7 +57,7 @@ class specialEventStation(SES):
         demo, add:
          headless=False
         """
-        secall = call.upper()
+        secall = call.upper().strip()
         """
         Run headless (no display required)  unless the optional
         headless parameter is set False by the caller.
@@ -62,34 +66,27 @@ class specialEventStation(SES):
         if (headless):
             chrome_options.add_argument("--headless")
             # chrome_options.headless = True # also works
+        
+        # Set the path to the Chromedriver
+        DRIVER_PATH = '/usr/bin/chromedriver'
+        chrome_service = Service(DRIVER_PATH) 
 
-        dr = webdriver.Chrome(options=chrome_options)
-        #dr = webdriver.Chrome()
+        dr = webdriver.Chrome(options=chrome_options, 
+                              service=chrome_service)
         
         # Navigate to the callsign search page
-        """
-        This retry code ends up in an endless loop and does not work.
-        Need to figure out why.
-        """
-        #retry=True
-        #while retry:
-        #  try:
-        #      print('Trying...')
-        dr.get('http://www.1x1callsigns.org/index.php/search')
-        sleep(5)
-        #  except:
-        #    print('Exception...')
-        #    if retry:
-        #        print('Search Timeout - try again')
-        #        retry = False
-        #    else:
-        #        print('Consecutive search timeout - exiting...')
-        #        exit()
+        try:
+            print('Searching {} for {}...'.format(SEARCH1X1URL, secall))
+            dr.get(SEARCH1X1URL)
+            sleep(5)
+        except:
+            print('Exception...')
+            print('Search Timeout - try again')
+            exit()
  
         # Select the callsign search box
-        textbox_xpath = "//body[1]/div[1]/div[1]/div[1]/div[2]/div[4]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[1]/td[2]/form[1]/table[1]/tbody[1]/tr[1]/td[1]/input[1]"
-        sbox=dr.find_element(By.XPATH,textbox_xpath)
-
+        sbox=dr.find_element(By.ID, 'callsign')
+        #print(sbox)
         """
         Sending the target call to search field
         NOTE: Chromium and FireFox drivers have trouble sending some 
@@ -101,63 +98,91 @@ class specialEventStation(SES):
             instead of send_keys() method for the work around.
         """
         #self.send_keys(sbox, secall)
-        self.write_to_element(dr, textbox_xpath, secall)
-        
-        sleep(2)
+        #self.write_to_element(dr, sbox, secall)
+        sbox.click()
+        sbox.clear()
+        sbox.send_keys(secall)
+        sleep(1)
+        #find and click the search button next to the callsign text box.
+        search=dr.find_element(By.ID,'startd')
+        search.click()
+        sleep(1)
 
-        # Iterate thru table elements until a date match is found.
-        r=c=1
-        fmtstg = "//body[1]/div[1]/div[1]/div[1]/div[2]/div[4]/div[2]/div[1]/div[2]/table[1]/tbody[1]/tr[1]/td[1]/table[1]/tbody[1]/tr[2]/td[1]/div[1]/div[1]/table[1]/tbody[1]/tr[{}]/td[{}]"
+        #Find the table that contains the search results.
+        #no_match = True
+        #while True:
+        r=0
+        match = False
+        try:
+            table=dr.find_element(By.TAG_NAME, 'table')
+            #print('raw table=\n{}'.format(table.text))
+        except:
+            """
+            If a table is not found, this callsign is not in the
+            database.  Exit
+            """
+            #print('table not found...')
+            table = None
+            
+            
+        if table:
+            """
+            Loop through the table rows searching for a date that falls
+            within the limits defined by start_date and end_date.
+            """
+            rows=table.find_elements(By.TAG_NAME,'tr')
+            #print('row count={}'.format(len(rows)))
+            for row in rows:
+                cells = row.find_elements(By.TAG_NAME, 'td')
+                #print('cell count = {}'.format(len(cells)))
+                """
+                If 5 or more cells:
+                  cell[0] = secall
+                  cell[1] = start date
+                  call[2] = end date
+                  call[3] = the more info (on operator) link.
+                Compare these to what was passed in.
+                """
+                if len(cells) >= 5:
+                    rcall=cells[0].text
+                    st=datetime.strptime(cells[1].text, TIMEFMT)
+                    et=datetime.strptime(cells[2].text, TIMEFMT)
+                    sename=cells[3].text
+                    morelink=cells[4]
+                    #print('call: {}, start:{}, end:{}, more:{}'.format(rcall, st, et, sename, morelink.text))
 
-        no_match = True
-        while True:
-            pathstg = fmtstg.format(r, c)
-            try:
-                tbox = dr.find_element(By.XPATH, pathstg)
-            except:
-                #Element not found or does not exist
-                break
-            if c==1:
-                rcall=tbox.text
-            elif c==2:
-                st=datetime.strptime(tbox.text, TIMEFMT)
-            elif c==3:
-                et=datetime.strptime(tbox.text, TIMEFMT)
-            elif c==4:
-                sename=tbox.text
-            elif c==5:
-                morelink=tbox.text
-                if ((start_date>=st) and (start_date<=et)) or\
-                                ((end_date>=st) and (end_date<=et)):
-                    print('{} Match found! {}'.format(r, secall))
-                    no_match = False
-                    break
-                r+=1
-                if r>= searchlimit:
-                    break
-                c=1
-            c += 1
-        
-        if no_match:
+                    if ((start_date>=st) and (start_date<=et)) or\
+                          ((end_date>=st) and (end_date<=et)):
+                        print('{} Match found! {}'.format(r, secall))
+                        match = True
+                        break
+        else:
+            #print('No table found...')
+            pass
+
+        if match:
+            self.startdate=st
+            self.enddate=et
+            self.sename=sename
+            morelink.click() # Move to details page using link from page
+            sleep(5)
+            """
+            All data of interest is in column 2 (td[2]), Op name is row 6,
+            op call in row 7 (tr[7]), etc.
+            """
+            self.opname = dr.find_element(By.XPATH, '//tbody/tr[4]/td[2]').text
+            self.opcall = dr.find_element(By.XPATH, '//tbody/tr[5]/td[2]').text
+            self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
+            self.opemail = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
+            self.opphone = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
+            dr.quit()
+            return True
+        else:
             # No match found
             print('No match found for call {}'.format(self.callsign))
+            dr.quit()
             return False
             
-        self.startdate=st
-        self.enddate=et
-        self.sename=sename
-        tbox.click() # Move to details page using link from page
-        sleep(5)
-        """
-        All data of interest is in column 2 (td[2]), Op name is row 6,
-        op call in row 7 (tr[7]), etc.
-        """
-        self.opname = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
-        self.opcall = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
-        self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
-        self.opemail = dr.find_element(By.XPATH, '//tbody/tr[9]/td[2]').text
-        self.opphone = dr.find_element(By.XPATH, '//tbody/tr[10]/td[2]').text
-        return True
         
     def send_keys(self, el: WebElement, keys: str):
         """
@@ -181,7 +206,7 @@ class specialEventStation(SES):
             callsign search box. Use the method write_to_element()
             instead of send_keys() method for the work around.
         """
-        el=driver.find_element(By.XPATH, xpath)
+        el=driver.find_element(By.ID, xpath)
         js_command = f'document.evaluate(\'{xpath}\', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value = \'{input_string}\';'
         driver.execute_script(js_command)
         sleep(2)

@@ -91,17 +91,17 @@ class specialEventStation(SES):
         Sending the target call to search field
         NOTE: Chromium and FireFox drivers have trouble sending some 
             characters (at least the RPI versions do). Most notably
-            the 'S' character. It would not be passed to the input box
+            the 'S, E, R characters we use in our SES callsigns. 
+            It would not be passed to the input box
             in the form. The work around (found on StackOverflow) was
             to call a javascript snippit to enter the text in the
-            callsign search box. Use the method write_to_element()
+            callsign search box. Use the execute_script method 
             instead of send_keys() method for the work around.
         """
-        #self.send_keys(sbox, secall)
-        #self.write_to_element(dr, sbox, secall)
         sbox.click()
         sbox.clear()
-        sbox.send_keys(secall)
+        #sbox.send_keys(secall)
+        dr.execute_script("arguments[0].value = arguments[1];", sbox, secall) 
         sleep(1)
         #find and click the search button next to the callsign text box.
         search=dr.find_element(By.ID,'startd')

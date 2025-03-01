@@ -34,8 +34,8 @@ MOLIST =	[	'K0M', 'N0M', 'W0M',
 			'K0R', 'N0R', 'W0R',
 			'K0I', 'N0I', 'W0I'	]
 				
-STARTDATE = 'April 3, 2022'
-ENDDATE = 'April 4, 2022'
+STARTDATE = 'April 5, 2025'
+ENDDATE = 'April 6, 2025'
 				
 class moqpseReport():
     def __init__(self, calls=None, sdate=None, edate=None,

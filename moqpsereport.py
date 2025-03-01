@@ -110,7 +110,10 @@ class moqpseReport():
 					 
         d.add_unformated_text(\
 		 """<h2 align='center'>{} Missouri QSO Party Special Event Stations</h2>""".format(YEAR))
+
+        d.add_unformated_text("<center>")
         d.addTimeTag(prefix='Updated: ') 
+        d.add_unformated_text("</center>")
 		 
         d.add_unformated_text(\
 		"""

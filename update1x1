@@ -4,22 +4,45 @@ startdate='April 5, '$year
 enddate='April 6, '$year
 new='moqp1x1ses.html'
 old='old_moqp1x1ses.html'
+PID_FILE=/tmp/$0.pid
+[ -f $PID_FILE ] && {
+    pid=`cat $PID_FILE`
+    ps -p $pid && {
+        echo Already running...
+        exit
+    }
+    rm -rf $PID_FILE
+}
+echo $$ > $PID_FILE
+
 #record start of process
 date
 cd /home/pi/Projects/status1x1
-if [ -f "$new" ]; then
+if [ -f "$new" ]; then {
     rm $old
     mv $new $old
+}
 fi
 #Fetch allocated calls from 1x1callsigns.org
 ./sestationreport.py --startdate "$startdate" --enddate "$enddate"
-if [ -f "$new" ]; then
-    diff $new $old
+if [ -f "$new" ]; then {
+    #Skip the first 9 lines (up to the UPDATED tag)
+    diff <(tail -n +9 $new) <(tail -n +9 $old)
+    DIFFSTAT=$?
+    if [ $DIFFSTAT -ne 0]; then {
+        echo "Updates found, updating the file on w0ma.org..."
+        #Use scp to copy file to w0ma.org
+        scp ./moqp1x1ses.html w0ma@w0ma.org:/home/w0ma/mo_qso_party/results/$year/reports/.
+    }
+    else 
+        echo "No updates recorded."
+    fi    
+}
 else
     echo "Fetch of updated call list failed to complete."
 fi
 
-#Use scp to copy file to w0ma.org
-scp ./moqp1x1ses.html w0ma@w0ma.org:/home/w0ma/mo_qso_party/results/$year/reports/
 #record end of process
 date
+#Remove the .pid lock file
+rm -rf $PID_FILE

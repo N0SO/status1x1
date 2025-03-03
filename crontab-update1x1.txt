@@ -1,4 +1,4 @@
 # Run every 6 hours 
 # m h  dom mon dow   command
-* */6 * * * /usr/local/bin/update1x1 >>/home/pi/Documents/update1x1log.txt 2>&1
+* 0,6,12,18 * * * /usr/local/bin/update1x1 >>/home/pi/Public/moqplogs/2025/update1x1log.txt 2>&1
 

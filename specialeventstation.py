@@ -153,9 +153,11 @@ class specialEventStation(SES):
 
                     if ((start_date>=st) and (start_date<=et)) or\
                           ((end_date>=st) and (end_date<=et)):
-                        print('{} Match found! {}'.format(r, secall))
+                        print('Match for {} found in row {}...'.format(\
+                                      secall, r))
                         match = True
                         break
+                r+=1
         else:
             #print('No table found...')
             pass

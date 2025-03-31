@@ -119,6 +119,17 @@ class moqpseReport():
 		"""
 		<p align="center">Thank You to our 1x1 Special Event Operators!<br>
 						  You make the contest more fun for the rest of us!</p>
+
+        <p align='center'><b>NOTE:</b> Be advised, W0O (hosted by KK7NQW) is part of the 
+        <a href="https://nars.narwhal.be/polio/" target="_blank">Polio On The Air</a> 70th 
+        Anniversary special event this year. They have agreed to acknowledge 
+        QSOs from MOQP stations, so <i>QSOs with them will still count 
+        for the MOQP score, SHOWME and MISSOURI awards.</i> <b>W0O WILL NOT 
+        be located in Missouri</b>, so be sure to record their QTH correctly, 
+        and Missouri stations will need to provide them MO as the QTH instead 
+        of your county.<br>
+        ... And be sure an tell them thanks for participating in the MOQP! </p>
+                          
 		""")
 	
         """

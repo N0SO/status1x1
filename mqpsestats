@@ -12,7 +12,8 @@ p = devModPath(pypath = ['/home/pi/Projects/moqputils',
                          '/home/pi/Projects/cabrillolog'],
                sharepath = '/home/pi/Projects/moqputils/share')
 """ 
-p = devModPath(pypath = '/home/pi/Projects/sestats/pathlist.txt')
+MODPATH = devModPath(\
+                pypath = '/home/pi/Projects/status1x1/pathlist.txt')
 
 import argparse
 from __init__ import VERSION

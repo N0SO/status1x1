@@ -1,41 +1,27 @@
 #!/usr/bin/env python3
+import os.path, sys
+from devmodpath.devmodpath import devModPath
+
+"""
+ Add necessary dependent module paths. This can also be a file
+ path to a text file containing a list of modules. Note that this
+ should be removed if we ever setup an installer and put the dependant
+ modules in the appropriate location.
+
+p = devModPath(pypath = ['/home/pi/Projects/moqputils',
+                         '/home/pi/Projects/cabrillolog'],
+               sharepath = '/home/pi/Projects/moqputils/share')
+""" 
+MODPATH = devModPath(\
+                pypath = '/home/pi/Projects/status1x1/pathlist.txt')
+
 from specialeventstation import specialEventStation
 from time import sleep
 from htmlutils.htmldoc import *
 from moqputils.configs.moqpdbconfig import YEAR
+from mqpsesdefs import *
 import csv
-#from htmlutils import htmldoc
 
-
-
-SECALLS = 	[	'K0S', 'N0S', 'W0S',
-			'K0H', 'N0H', 'W0H',
-			'K0O', 'N0O', 'W0O',
-			'K0W', 'N0W', 'W0W',
-			'K0M', 'N0M', 'W0M',
-			'K0E', 'N0E', 'W0E',
-			'K0I', 'N0I', 'W0I',
-			'K0U', 'N0U', 'W0U',
-			'K0R', 'N0R', 'W0R'	]
-				
-SHOWMELIST = [	'K0S', 'N0S', 'W0S',
-		'K0H', 'N0H', 'W0H',
-		'K0O', 'N0O', 'W0O',
-		'K0W', 'N0W', 'W0W',
-		'K0M', 'N0M', 'W0M',
-		'K0E', 'N0E', 'W0E'	]
-				
-MOLIST =	[	'K0M', 'N0M', 'W0M',
-			'K0I', 'N0I', 'W0I',
-			'K0S', 'N0S', 'W0S',
-			'K0S', 'N0S', 'W0S',
-			'K0O', 'N0O', 'W0O',
-			'K0U', 'N0U', 'W0U',
-			'K0R', 'N0R', 'W0R',
-			'K0I', 'N0I', 'W0I'	]
-				
-STARTDATE = 'April 5, 2025'
-ENDDATE = 'April 6, 2025'
 				
 class moqpseReport():
     def __init__(self, calls=None, sdate=None, edate=None,

@@ -6,7 +6,7 @@
 # The sharepath: line will be used to locate where shared files like
 # county lists, arrl section lists, etc will be located.
 #
-/home/pi/Projects
+#/home/pi/Projects
 /home/pi/Projects/moqputils
 #The shared file path for various things
 sharepath:/home/pi/Projects/moqputils/shared

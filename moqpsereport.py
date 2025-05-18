@@ -1,20 +1,4 @@
 #!/usr/bin/env python3
-import os.path, sys
-from devmodpath.devmodpath import devModPath
-
-"""
- Add necessary dependent module paths. This can also be a file
- path to a text file containing a list of modules. Note that this
- should be removed if we ever setup an installer and put the dependant
- modules in the appropriate location.
-
-p = devModPath(pypath = ['/home/pi/Projects/moqputils',
-                         '/home/pi/Projects/cabrillolog'],
-               sharepath = '/home/pi/Projects/moqputils/share')
-""" 
-MODPATH = devModPath(\
-                pypath = '/home/pi/Projects/status1x1/pathlist.txt')
-
 from specialeventstation import specialEventStation
 from time import sleep
 from htmlutils.htmldoc import *

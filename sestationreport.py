@@ -1,4 +1,20 @@
 #!/usr/bin/env python3
+import os.path, sys
+from devmodpath.devmodpath import devModPath
+
+"""
+ Add necessary dependent module paths. This can also be a file
+ path to a text file containing a list of modules. Note that this
+ should be removed if we ever setup an installer and put the dependant
+ modules in the appropriate location.
+
+p = devModPath(pypath = ['/home/pi/Projects/moqputils',
+                         '/home/pi/Projects/cabrillolog'],
+               sharepath = '/home/pi/Projects/moqputils/share')
+""" 
+MODPATH = devModPath(\
+                pypath = '/home/pi/Projects/status1x1/pathlist.txt')
+
 import argparse
 from __init__ import VERSION
 from moqpsereport import moqpseReport
@@ -38,8 +54,9 @@ def parseMyArgs():
 
     parser.add_argument(\
             "-t", "--rtype", 
-            help="""The report type (csv or html).""",
-            default='csv')
+            choices = ['csv','html'],
+            default = 'csv',
+            help="""The report type (csv or html).""")
 
     parser.add_argument(\
             "-d", "--display", 
@@ -50,8 +67,7 @@ def parseMyArgs():
     parser.add_argument('--version',
                         help='Display version and exit',
                         action='version', 
-                        version='{} V{}'.format('SEStationReport: ', 
-                                                    VERSION))
+                        version=f'SEStationReport: V{VERSION}')
 
     args = parser.parse_args()
     return args

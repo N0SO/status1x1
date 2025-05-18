@@ -6,7 +6,7 @@ from status1x1.ses import SES
 from moqpdbconfig import * #To use the SANDBOXDB
 from datetime import datetime
 import csv, os.path
-HEADER = 'CALL\tOWNERCALL\tCW\tPH\tRY\tTOTAL\tID'
+HEADER = 'CALL\tOWNERCALL\tCW\tPH\tRY\tTOTAL\tID\tLOGID'
 
 class mySES(SES):
     """
@@ -57,7 +57,7 @@ class sesSum(mySES):
 class seStats():
     
     def __init__(self, args=None):
-        self.sesDict = dict()
+        self.sesDict = {}
         if args.inputpath:
             if args.inputpath.upper() == 'INIT':
                 self._initTable() #S""" Initialize SESCALLS Table only"""
@@ -67,6 +67,8 @@ class seStats():
                 SESCALLS table with that data
                 """
                 self.initSESTable(args.inputpath)
+        elif args.callsign:
+            self.read_from_db()
         pass
         
     def _initTable(self, senames = None):
@@ -152,6 +154,26 @@ class seStats():
         
                 
         return True
+        
+    def _makeSESObj(self, secall):
+            sesobj = mySES(callsign = secall['SESCALL'])
+            sesobj.opcall = secall['OWNERCALL']
+            sesobj.opname = secall['OWNERNAME']
+            sesobj.opaddress = secall['OWNERADDRESS']
+            sesobj.opemail = secall['OWNEREMAIL']
+            sesobj.opphone = secall['OWNERPHONE']
+            sesobj.sename = secall['EVENTNOTE']
+            sesobj.id = secall['ID']
+            sesobj.logid = secall['LOGID']
+            return sesobj
+
+    def read_from_db(self):
+        db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
+        db.setCursorDict()
+        sescalls = db.read_query("""SELECT * FROM SESCALLS;""")
+        for secall in sescalls:
+            sesobj = self._makeSESObj(secall)
+            self.sesDict[sesobj.callsign] = sesobj
             
     def initSESTable(self, csvfile):
         if (os.path.exists(csvfile)):            
@@ -225,19 +247,22 @@ class seStats():
         #                             WHERE SESCALLS.SESCALL = '{call}';""")
         secall = db.read_query(f"""SELECT ID, SESCALL, OWNERCALL, LOGID
                                 FROM SESCALLS WHERE SESCALL='{call}'""")
-        if secall: scall = secall
+        if secall: 
+            scall = secall[0]
+        #print (scall)
+        ssum = {'TOTAL':'Nolog', 'CWQSO':'Nolog', 'PHQSO':'Nolog', 'RYQSO':'Nolog'}
         if scall['LOGID']:
             sesum = db.read_query(f"""SELECT CWQSO, PHQSO, RYQSO 
                                    FROM SUMMARY 
-                                   WHERE LOGID = '{scall['LOGID']}""")
-        if sesum:
-            ssum = sesum[0]
-            ssum['TOTAL'] = ssum['CW'] + ssum['PH'] + ssum['RY']
-        else:
-            ssum = {'TOTAL':None, 'CW':None, 'PH':None, 'RY':None}
+                                   WHERE LOGID = '{scall['LOGID']}'""")
+            if sesum:
+                ssum = sesum[0]
+                ssum['TOTAL'] = ssum['CWQSO'] + ssum['PHQSO'] + ssum['RYQSO']
 
         if rtype == 'csv':
-            csvdata = self.makeCSV(ssum, header=header)
+            csvdata = self.makeCSV(self.sesDict[call], 
+                                    ssum, 
+                                    header=header)
         
         return csvdata
             
@@ -254,13 +279,12 @@ class seStats():
                 header = False
         return csvd
 
-    def makeCSV(self, cvd, header=False):
+    def makeCSV(self, sesobj, cvd, header=False):
         if header:
             csvreturn = [HEADER]
         else:
             csvreturn = []
-        
-        csvreturn.append(f"""{ self.sesDictcvd['SESCALL'] }\t{ cvd['OWNERCALL'] }\t{ cvd['CW'] }\t{ cvd['PH'] }\t{ cvd['RY'] }\t{ cvd['TOTAL'] }\t{ cvd['ID'] }""")
+        csvreturn.append(f"""{ sesobj.callsign }\t{ sesobj.opcall }\t{ cvd['CWQSO'] }\t{ cvd['PHQSO'] }\t{ cvd['RYQSO'] }\t{ cvd['TOTAL'] }\t{ sesobj.id }\t{ sesobj.logid }""")
         
         return csvreturn
 

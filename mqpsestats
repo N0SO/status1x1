@@ -54,7 +54,11 @@ def parseMyArgs():
         help="""Fetch details for CALLSIGN from MOQP database. 
              Entering 'allcalls' will run the report on all the 1x1 
              calls in the database.""")
- 
+
+    parser.add_argument('-l', '--logid', default=None,
+        help="""Add a link to the SES callsign station log if the log 
+                exists in the database. Entering allcalls will add or
+                update log ID for all SES calls in the database.""") 
 
     parser.add_argument('-t', '--reportType',
                                    choices = ['csv','html'],
@@ -84,4 +88,9 @@ if __name__ == '__main__':
         from sestats import seStats
         app = seStats(args)
         app.sesReport(args)
+        
+    elif (args.logid):
+        from sestats import seStats
+        app = seStats(args)
+        app.addLogIDs(args.logid)
         

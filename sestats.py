@@ -68,7 +68,7 @@ class seStats():
                     SESCALLS table with that data
                     """
                     self.initSESTable(args.inputpath)
-            elif args.callsign:
+            elif args.callsign or args.logid:
                 self.read_from_db()
         pass
         
@@ -215,20 +215,27 @@ class seStats():
 
         
 
-    def addLogIDs(self):
+    def addLogIDs(self, calls = None):
         db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
         db.setCursorDict()
+        if calls == None or calls.lower() == 'allcalls':
+            calls = self.sesDict.keys()
+        else:
+            self._addLogID(db,calls.upper())
+            return True
+            
         
         #sescalls = db.read_query("""SELECT ID, SESCALL FROM SESCALLS;""")
         #for secall in sescalls:
         #    self._addLogID(db, secall['SESCALL'], secall['ID'])
         #    self._addLogID(db, secall['SESCALL'], secall['ID'])
-        for call in self.sesDict.keys():
+        for call in calls:
             secall = db.read_query(f"""SELECT ID, SESCALL FROM SESCALLS
                                         WHERE SESCALL = '{call}';""")
             if (secall):
                 #self.sesDict[call].id = secall[0]['ID']
                 self._addLogID(db, call) 
+        return True
 
     def sesReport(self, args):
         if args.callsign:
@@ -247,6 +254,9 @@ class seStats():
                                 FROM SESCALLS WHERE SESCALL='{call}'""")
         if secall: 
             scall = secall[0]
+        else:
+            print(f'No SES call {call} in database.')
+            exit()
         #print (scall)
         ssum = {'TOTAL':'Nolog', 'CWQSO':'Nolog', 'PHQSO':'Nolog', 'RYQSO':'Nolog'}
         if scall['LOGID']:

@@ -155,7 +155,7 @@ class moqpseReport():
             d.saveAndView('moqp1x1ses.html')
 
 
-    def makeOplist(self):
+    def makeOplist(self, calls=SECALLS):
         """
         Show the details for each 1x1 op
         """  
@@ -165,7 +165,7 @@ class moqpseReport():
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['CALL ','OP CALL','NAME',
                              'ADDRESS','EMAIL','PHONE', 'EVENT'])
-            for call in SECALLS:
+            for call in calls:
                 print('Writing line for {}...'.format(call))
                 writer.writerow([call,
                                 self.stations[call].opcall,
@@ -213,7 +213,7 @@ class moqpDBseReport(moqpseReport):
             
                             
 
-    def makeOplist(self, calls):
+    def makeOplist(self, calls=SECALLS):
         """
         Write op list to new table in database
         """  
@@ -236,7 +236,7 @@ class moqpDBseReport(moqpseReport):
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['CALL ','OP CALL','NAME',
                              'ADDRESS','EMAIL','PHONE', 'EVENT'])
-            for call in SECALLS:
+            for call in calls:
                 print('Writing line for {}...'.format(call))
                 writer.writerow([call,
                                 self.stations[call].opcall,
@@ -256,9 +256,8 @@ class moqpDBseReport(moqpseReport):
                         EVENTNOTE='{self.stations[call].sename}'
                         WHERE SESCALL='{call}'""")
 
-    
-
-
+                if (sesid):
+                    se._addLogID(db, call)
 
 			  
 if __name__ == '__main__':

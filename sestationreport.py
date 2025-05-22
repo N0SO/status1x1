@@ -18,7 +18,6 @@ MODPATH = devModPath(\
 import argparse
 from __init__ import VERSION
 from mqpsesdefs import *
-from moqpsereport import moqpDBseReport
 
 USAGE = \
 """
@@ -41,16 +40,18 @@ def parseMyArgs():
             "-c", "--calls", 
             help="""The list of callsigns to look up. Omit to 
             use the default SHOWME and MISSOURI lists.""",
-            default= None)
+            default= SECALLS)
 
     parser.add_argument(\
             "-s", "--startdate", 
-            help="""The starting date for the special event.""",
+            help="""The starting date for the special event. Omit this
+                    to use the default dates in mqpsesdefs.py""",
             default=STARTDATE)
 
     parser.add_argument(\
             "-e", "--enddate", 
-            help="""The starting date for the special event.""",
+            help="""The ending date for the special event. Omit this
+                    to use the default dates in mqpsesdefs.py""",
             default=ENDDATE)
 
     parser.add_argument(\
@@ -62,8 +63,15 @@ def parseMyArgs():
     parser.add_argument(\
             "-d", "--display", 
             help="""Display the browser and show activity.
-                    Default is to run "headless" (no display)..""",
+                    Default is to run "headless" (no display).""",
             default=True, action = 'store_false')
+
+    parser.add_argument(\
+            "-n", "--nodatabase", 
+            help="""Lookup the list of callsigns, but skip writing or
+                    persisting the results in the MOQP database.""",
+            default=False, action = 'store_true')
+
 
     parser.add_argument('--version',
                         help='Display version and exit',
@@ -77,11 +85,20 @@ def parseMyArgs():
 if __name__ == '__main__':
     args = parseMyArgs()
 
-    se=moqpDBseReport(args.calls, 
-                    args.startdate, 
-                    args.enddate,
-                    args.display)
-    oplist = se.makeOplist(SECALLS)
+    if args.nodatabase:
+        from moqpsereport import moqpseReport
+        se=moqpseReport(args.calls, 
+                        args.startdate, 
+                        args.enddate,
+                        args.display)
+    else:
+        from moqpsereport import moqpDBseReport
+        se=moqpDBseReport(args.calls, 
+                        args.startdate, 
+                        args.enddate,
+                        args.display)
+                        
+    oplist = se.makeOplist(args.calls)
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')
     htmlList = se.makeHTML()

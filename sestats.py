@@ -58,20 +58,21 @@ class seStats():
     
     def __init__(self, args=None):
         self.sesDict = {}
-        if args.inputpath:
-            if args.inputpath.upper() == 'INIT':
-                self._initTable() #S""" Initialize SESCALLS Table only"""
-            else:
-                """ 
-                Read SESCALLS data from CSV input file and initialize
-                SESCALLS table with that data
-                """
-                self.initSESTable(args.inputpath)
-        elif args.callsign:
-            self.read_from_db()
+        if args:
+            if args.inputpath:
+                if args.inputpath.upper() == 'INIT':
+                    self._initTable() #S""" Initialize SESCALLS Table only"""
+                else:
+                    """ 
+                    Read SESCALLS data from CSV input file and initialize
+                    SESCALLS table with that data
+                    """
+                    self.initSESTable(args.inputpath)
+            elif args.callsign:
+                self.read_from_db()
         pass
         
-    def _initTable(self, senames = None):
+    def _initTable(self, secalls = None):
         db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
         db.setCursorDict()
         print (f'Using database {DBNAME}')
@@ -88,11 +89,19 @@ class seStats():
           `SESOPS` varchar(256) DEFAULT NULL COMMENT 'May be able to get from submitted log.\r\n',
           `EVENTNOTE` varchar(256) DEFAULT NULL COMMENT 'From 1x1callsigns.org',
           `SESNOTES` varchar(256) DEFAULT NULL,
-          `YEAR` year(4) NOT NULL DEFAULT current_timestamp(),
+          `YEAR` datetime NOT NULL DEFAULT current_timestamp(),
            PRIMARY KEY (`ID`)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
         """
         db.write_query(dquery) # Delete old SESCALLS table if it exists
         db.write_query(dbcquery) # create new empty table 
+        if secalls:
+            for call in secalls:
+                seid=db.write_pquery("""INSERT INTO SESCALLS 
+                                        (SESCALL)
+                                         VALUES (%s)""", [call])
+                                      
+                print(f'DEBUG: Inserting {call} as id {seid}...')
+
   
     def _readCSVFile(self, csvFile):
         with open(csvFile,'r') as csvfile:
@@ -112,7 +121,7 @@ class seStats():
             return fileData
             
     def write_to_db(self, fdata=None, init=True):
-        current_year = datetime.now().year
+        current_year = datetime.now()
         db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
         db.setCursorDict()
 
@@ -123,16 +132,15 @@ class seStats():
                 sesid = db.write_pquery(\
                    """INSERT INTO SESCALLS 
                       (SESCALL, OWNERCALL, OWNERNAME, OWNERADDRESS, 
-                       OWNEREMAIL, OWNERPHONE, EVENTNOTE, YEAR)
-                      VALUES (%s, %s, %s, %s, %s, %s, %s, %s)""",
+                       OWNEREMAIL, OWNERPHONE, EVENTNOTE)
+                      VALUES (%s, %s, %s, %s, %s, %s, %s)""",
                    [ row['CALL '],
                      row['OP CALL'],
                      row['NAME'],
                      row['ADDRESS'],
                      row['EMAIL'],
                      row['PHONE'],
-                     row['EVENT'],
-                     current_year ] )
+                     row['EVENT'] ] )
                 self.sesDict[row['CALL ']].id = sesid
                 #print(f'ID: {sesid} {row}')
         else:
@@ -235,16 +243,6 @@ class seStats():
             self.showCSV(csvd)
                 
     def oneCall(self, db, call, rtype, header=False):
-        #print(f'{rtype} Report for {call}...')
-        #sesum = db.read_query(f"""SELECT SESCALLS.ID, 
-        #                                SESCALLS.SESCALL,
-        #                                SESCALLS.OWNERCALL,
-        #                                SUMMARY.CWQSO AS 'CW',
-        #                                SUMMARY.PHQSO AS 'PH',
-        #                                SUMMARY.RYQSO AS 'RY'  
-        #                             FROM (SESCALLS JOIN SUMMARY 
-        #                             ON (SESCALLS.LOGID = SUMMARY.LOGID))
-        #                             WHERE SESCALLS.SESCALL = '{call}';""")
         secall = db.read_query(f"""SELECT ID, SESCALL, OWNERCALL, LOGID
                                 FROM SESCALLS WHERE SESCALL='{call}'""")
         if secall: 

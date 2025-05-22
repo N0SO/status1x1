@@ -17,7 +17,8 @@ MODPATH = devModPath(\
 
 import argparse
 from __init__ import VERSION
-from moqpsereport import moqpseReport
+from mqpsesdefs import *
+from moqpsereport import moqpDBseReport
 
 USAGE = \
 """
@@ -45,12 +46,12 @@ def parseMyArgs():
     parser.add_argument(\
             "-s", "--startdate", 
             help="""The starting date for the special event.""",
-            default=None)
+            default=STARTDATE)
 
     parser.add_argument(\
             "-e", "--enddate", 
             help="""The starting date for the special event.""",
-            default=None)
+            default=ENDDATE)
 
     parser.add_argument(\
             "-t", "--rtype", 
@@ -76,11 +77,11 @@ def parseMyArgs():
 if __name__ == '__main__':
     args = parseMyArgs()
 
-    se=moqpseReport(args.calls, 
+    se=moqpDBseReport(args.calls, 
                     args.startdate, 
                     args.enddate,
                     args.display)
+    oplist = se.makeOplist(SECALLS)
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')
     htmlList = se.makeHTML()
-    oplist = se.makeOplist()

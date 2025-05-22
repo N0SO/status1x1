@@ -10,7 +10,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from time import sleep, strftime
 from datetime import datetime
-import sys
+import sys, os
 """
 Time format is Month day, YEAR to match the 1x1 source web page.
 April 4, 2022 for example
@@ -172,9 +172,13 @@ class specialEventStation(SES):
             """
             self.opname = dr.find_element(By.XPATH, '//tbody/tr[4]/td[2]').text
             self.opcall = dr.find_element(By.XPATH, '//tbody/tr[5]/td[2]').text
-            self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
-            self.opemail = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
-            self.opphone = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
+
+            opaddress = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
+            self.opaddress=self.handleSplitlines(opaddress)
+            #self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
+            #self.opemail = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
+            #self.opphone = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
+
             dr.quit()
             return True
         else:
@@ -182,7 +186,20 @@ class specialEventStation(SES):
             print('No match found for call {}'.format(self.callsign))
             dr.quit()
             return False
-            
+    
+    def handleSplitlines(self, sp):
+        if type(sp) is str:
+            rp=''
+            t = sp.splitlines()
+            ln=len(t)
+            i=0
+            for lx in t: 
+                i += 1
+                rp = rp+lx
+                if i < ln: rp += os.sep
+        else:
+            rp=sp
+        return rp
         
     def send_keys(self, el: WebElement, keys: str):
         """

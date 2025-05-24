@@ -2,45 +2,19 @@
 from specialeventstation import specialEventStation
 from time import sleep
 from htmlutils.htmldoc import *
-from moqputils.configs.moqpdbconfig import YEAR
+from moqputils.configs.moqpdbconfig import *
+#from moqpdbconfig import *
+from moqputils.moqpdbutils import *
+from mqpsesdefs import *
+from sestats import seStats
 import csv
-#from htmlutils import htmldoc
 
-
-
-SECALLS = 	[	'K0S', 'N0S', 'W0S',
-			'K0H', 'N0H', 'W0H',
-			'K0O', 'N0O', 'W0O',
-			'K0W', 'N0W', 'W0W',
-			'K0M', 'N0M', 'W0M',
-			'K0E', 'N0E', 'W0E',
-			'K0I', 'N0I', 'W0I',
-			'K0U', 'N0U', 'W0U',
-			'K0R', 'N0R', 'W0R'	]
-				
-SHOWMELIST = [	'K0S', 'N0S', 'W0S',
-		'K0H', 'N0H', 'W0H',
-		'K0O', 'N0O', 'W0O',
-		'K0W', 'N0W', 'W0W',
-		'K0M', 'N0M', 'W0M',
-		'K0E', 'N0E', 'W0E'	]
-				
-MOLIST =	[	'K0M', 'N0M', 'W0M',
-			'K0I', 'N0I', 'W0I',
-			'K0S', 'N0S', 'W0S',
-			'K0S', 'N0S', 'W0S',
-			'K0O', 'N0O', 'W0O',
-			'K0U', 'N0U', 'W0U',
-			'K0R', 'N0R', 'W0R',
-			'K0I', 'N0I', 'W0I'	]
-				
-STARTDATE = 'April 5, 2025'
-ENDDATE = 'April 6, 2025'
 				
 class moqpseReport():
-    def __init__(self, calls=None, sdate=None, edate=None,
-                       headless=True,
-                       searchlimit=15):
+    def __init__(self,  calls=None, 
+                        sdate=None, edate=None,
+                        headless=True,
+                        searchlimit=15):
         if calls == None:
             print('default')
             selist = SECALLS
@@ -192,17 +166,20 @@ class moqpseReport():
             d.saveAndView('moqp1x1ses.html')
 
 
-    def makeOplist(self):
+    def makeOplist(self, calls=SECALLS):
         """
         Show the details for each 1x1 op
         """  
+        if isinstance(calls, str):
+            calls = [calls]
+            
         filename = 'operators.csv'
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f, delimiter='\t',
                             quotechar='|', quoting=csv.QUOTE_MINIMAL)
             writer.writerow(['CALL ','OP CALL','NAME',
                              'ADDRESS','EMAIL','PHONE', 'EVENT'])
-            for call in SECALLS:
+            for call in calls:
                 print('Writing line for {}...'.format(call))
                 writer.writerow([call,
                                 self.stations[call].opcall,
@@ -233,6 +210,71 @@ class moqpseReport():
             
         tsvList = self.makeTSV('SHOWME')
         return tsvList
+
+class moqpDBseReport(moqpseReport):
+
+    def __init__(self,  calls=None, 
+                        sdate=None, edate=None,
+                        headless=True,
+                        searchlimit=15):
+        super().__init__(   calls,
+                            sdate,
+                            edate,
+                            headless,
+                            searchlimit)
+        if calls:
+            self.makeOplist(calls)
+            
+                            
+
+    def makeOplist(self, calls=SECALLS):
+        """
+        Write op list to new table in database
+        """  
+        if isinstance(calls, str): 
+            calls = [ calls ]       
+        TNAME ='SESCALLS'
+        db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
+        #db.setCursorDict()
+        result = db.read_query('SHOW TABLES;')
+        #print(f'result = {result}')
+        rl = [r[0] for r in result]
+        if TNAME in rl:
+            print('{TNAME} Found...UPDATE')
+        else:
+            print('{TNAME} NOT Found... - Initialize')
+            se = seStats()
+            se._initTable(secalls=calls)
+
+        filename = 'operators.csv'
+        with open(filename, 'w', newline='') as f:
+            writer = csv.writer(f, delimiter='\t',
+                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(['CALL ','OP CALL','NAME',
+                             'ADDRESS','EMAIL','PHONE', 'EVENT'])
+            for call in calls:
+                print('Writing line for {}...'.format(call))
+                writer.writerow([call,
+                                self.stations[call].opcall,
+                                self.stations[call].opname,
+                                self.stations[call].opaddress,
+                                self.stations[call].opemail,
+                                self.stations[call].opphone,
+                                self.stations[call].sename])
+
+                sesid = db.write_query(\
+                   f"""UPDATE SESCALLS 
+                        SET OWNERCALL='{self.stations[call].opcall}',
+                        OWNERNAME='{self.stations[call].opname}', 
+                        OWNERADDRESS="{self.stations[call].opaddress}", 
+                        OWNEREMAIL='{self.stations[call].opemail}', 
+                        OWNERPHONE='{self.stations[call].opphone}', 
+                        EVENTNOTE='{self.stations[call].sename}'
+                        WHERE SESCALL='{call}'""")
+
+                if (sesid):
+                    se._addLogID(db, call)
+
 			  
 if __name__ == '__main__':
 
@@ -274,3 +316,4 @@ if __name__ == '__main__':
     tsvList = se.makeTSV('MO')
     
     htmlList = se.makeHTML()
+

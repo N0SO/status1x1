@@ -1,0 +1,12 @@
+# The python module list for the mqpsestats utility.
+# Use the class devmodpath to import this file and add the 
+# python modules to the python sys.path list. They get added in
+# reverse order, put the higher priorty modules last.
+#
+# The sharepath: line will be used to locate where shared files like
+# county lists, arrl section lists, etc will be located.
+#
+#/home/pi/Projects
+/home/pi/Projects/moqputils
+#The shared file path for various things
+sharepath:/home/pi/Projects/moqputils/shared

@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """
-A collection of classes used to generate the 1x1 Special Event Station
-list for the Missouri QSO Party
+A collection of classes and utilities used to generate the 1x1 Special 
+Event Station list for the Missouri QSO Party.
 
 Update History:
-* Thu Nov 17 2022 Mike Heitmann, N0SO <n0so@arrl.net>
-- V0.0.1 - Inital release. Also, retirement day for me!
-- Code is pretty crude, but it works.
+* Fri May 23 2025 Mike Heitmann, N0SO <n0so@arrl.net>
+- V2.0.1 - Release of version 2.0.1. Adds:
+-          Persistance of data in the database as table SESCALLS.
+-          Reports for 1x1 station performance in csv and html.
+-          Several bug fixes, including issue #8.
+* Wed May 21 2025 Mike Heitmann, N0SO <n0so@arrl.net>
+- V1.0.2 - Mostly working - still need HTML report format.
+- V1.0.1 - Fix for Issue #8.
+- Also added crude ability ro persist the 1x1 data in
+- the MOQP database, generate reports from the database to
+- guage 1x1 op performance. Added - new -n (--nodatabase) option
+- to maintain the old, no database functionality.
+- In addition to the sestationreport main, there is now a secondary
+- main: mqpsestats, used to 
 * Sat Mar 18 2023 Mike Heitmann, N0SO <n0so@arrl.net>
 - V1.0.0 - First official release
 - It's been working to track the 2023 MOQP 1x1 allocations.
@@ -27,7 +38,10 @@ Update History:
 - Also enhanced the script that runs this code. It now does a diff on
 - the new data vs the old data and only uploads the new to W0MA.ORG if
 - there are changes to the operator callsign(s).
-- Bumping the version to 2.0.0 due to the extensive rewrites in file 
+- Bumping the version to 1.0.0 due to the extensive rewrites in file 
 - sestationreport.py.
+* Thu Nov 17 2022 Mike Heitmann, N0SO <n0so@arrl.net>
+- V0.0.1 - Inital release. Also, retirement day for me!
+- Code is pretty crude, but it works.
 """
-VERSION='2.0.0'
+VERSION='2.0.1'

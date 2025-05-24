@@ -4,6 +4,11 @@ A collection of classes and utilities used to generate the 1x1 Special
 Event Station list for the Missouri QSO Party.
 
 Update History:
+* Fri May 23 2025 Mike Heitmann, N0SO <n0so@arrl.net>
+- V2.0.1 - Release of version 2.0.0. Adds:
+-          Persistance of data in the database as table SESCALLS.
+-          Reports for 1x1 station performance in csv and html.
+-          Several bug fixes, including issue #8.
 * Wed May 21 2025 Mike Heitmann, N0SO <n0so@arrl.net>
 - V1.0.2 - Mostly working - still need HTML report format.
 - V1.0.1 - Fix for Issue #8.
@@ -24,4 +29,4 @@ Update History:
 - V0.0.1 - Inital release. Also, retirement day for me!
 - Code is pretty crude, but it works.
 """
-VERSION='1.0.2'
+VERSION='2.0.0'

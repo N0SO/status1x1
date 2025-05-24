@@ -2,12 +2,34 @@
 from __init__ import VERSION
 from moqputils.moqpdbutils import *
 from status1x1.ses import SES
-#from moqputils.configs.moqpdbconfig import * # To use the production DB
-from moqpdbconfig import * #To use the SANDBOXDB
+from moqputils.configs.moqpdbconfig import * # To use the production DB
+#from moqpdbconfig import * #To use the SANDBOXDB
 from datetime import datetime
 import csv, os.path
 HEADER = 'CALL\tOWNERCALL\tCW\tPH\tRY\tTOTAL\tID\tLOGID'
 
+#YEAR defined in moqpdbconfig
+HTMLHEADER = f"""
+    <html>
+    <header>
+    <title>{YEAR} Missouri QSO Party Special Event Station Statistics</title>
+    <link href="./styles.css" rel="stylesheet" type="text/css" />
+    </head>
+    <body>
+    <h2 align='center'>{YEAR} Missouri QSO Party Special Event Station Statistics</h2>
+    <table>
+    <tr>
+    <th>CALL</th><th>OWNERCALL</th><th>CW</th><th>PH</th><th>RY</th>
+    <th>TOTAL</th><th>ID</th><th>LOG ID</th>
+    </tr>
+"""
+   
+HTMLFOOTER="""
+    </table>
+    </body>
+    </html>
+"""
+    
 class mySES(SES):
     """
     Adds a parameter for the table index (id) and logid. The logid will 
@@ -247,6 +269,8 @@ class seStats():
                 csvd=self.allCalls(db, callsign, reportype)
             else:
                 csvd=self.oneCall(db, callsign, reportype, header=True)
+            if (reportype == 'html'):
+                csvd.append(HTMLFOOTER)
             self.showCSV(csvd)
                 
     def oneCall(self, db, call, rtype, header=False):
@@ -269,9 +293,9 @@ class seStats():
 
         if rtype == 'csv':
             csvdata = self.makeCSV(self.sesDict[call], 
-                                    ssum, 
-                                    header=header)
-        
+                                    ssum, header=header)
+        elif rtype == 'html':
+            csvdata = self.makeHTML( self.sesDict[call], ssum, header=header )        
         return csvdata
             
     def allCalls(self, db, call, rtype):
@@ -287,6 +311,25 @@ class seStats():
                 header = False
         return csvd
 
+    def makeHTML(self, sesobj, cvd, header=False):
+        if header:
+            htmlreturn = [HTMLHEADER]
+        else:
+            htmlreturn = []
+            
+        htmlreturn.append(f"""<tr>
+                                <td>{ sesobj.callsign }</td>
+                                <td>{ sesobj.opcall }</td>
+                                <td>{ cvd['CWQSO'] }</td>
+                                <td>{ cvd['PHQSO'] }</td>
+                                <td>{ cvd['RYQSO'] }</td>
+                                <td>{ cvd['TOTAL'] }</td>
+                                <td>{ sesobj.id }</td>
+                                <td>{ sesobj.logid }</td>
+                             </tr>""")
+        return htmlreturn
+        
+        
     def makeCSV(self, sesobj, cvd, header=False):
         if header:
             csvreturn = [HEADER]

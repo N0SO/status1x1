@@ -73,7 +73,7 @@ def parseMyArgs():
             default=False, action = 'store_true')
 
 
-    parser.add_argument('--version',
+    parser.add_argument('-v', '--version',
                         help='Display version and exit',
                         action='version', 
                         version=f'SEStationReport: V{VERSION}')

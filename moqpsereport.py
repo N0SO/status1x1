@@ -159,6 +159,9 @@ class moqpseReport():
         """
         Show the details for each 1x1 op
         """  
+        if isinstance(calls, str):
+            calls = [calls]
+            
         filename = 'operators.csv'
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f, delimiter='\t',
@@ -217,7 +220,9 @@ class moqpDBseReport(moqpseReport):
         """
         Write op list to new table in database
         """  
-        TNAME ='SECALLS'
+        if isinstance(calls, str): 
+            calls = [ calls ]       
+        TNAME ='SESCALLS'
         db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
         #db.setCursorDict()
         result = db.read_query('SHOW TABLES;')

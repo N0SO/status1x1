@@ -5,6 +5,8 @@ enddate='April 12, '$year
 echo $0 $1
 new='moqp1x1ses.html'
 old='old_moqp1x1ses.html'
+saved="~/Public/moqplogs/$year/update1x1results/"
+echo $saved
 cd /home/pi/Projects/status1x1
 
 #source this file to lock this process and prevent running again while
@@ -19,6 +21,7 @@ if [ -f "$new" ]; then {
     mv $new $old
 }
 fi
+
 #Fetch allocated calls from 1x1cllsigns.org
 ./sestationreport.py --startdate "$startdate" --enddate "$enddate"
 if [ -f "$new" ]; then {
@@ -27,6 +30,16 @@ if [ -f "$new" ]; then {
     DIFFSTAT=$?
     if [ $DIFFSTAT -ne 0 ]; then {
         echo "Updates found, updating the file on w0ma.org..."
+        #Copy files to backup directory
+        if [ -f "$saved/moqp1x1ses.html" ]; then {
+            rm "$saved/*.*"
+        } 
+        fi
+        cp ./moqp1x1ses.html $saved/.
+        cp ./operators.csv $saved/.
+        cp ./mostations.csv $saved/.
+        cp ./showmestations.csv $saved/.
+                
         #Use scp to copy file to w0ma.org
         scp ./moqp1x1ses.html w0ma@w0ma.org:/home/w0ma/mo_qso_party/results/$year/reports/.
     }

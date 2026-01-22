@@ -1,7 +1,7 @@
 #!/usr/bin/bash
-year='2025'
-startdate='April 5, '$year
-enddate='April 6, '$year
+year='2026'
+startdate='April 11, '$year
+enddate='April 12, '$year
 echo $0 $1
 new='moqp1x1ses.html'
 old='old_moqp1x1ses.html'

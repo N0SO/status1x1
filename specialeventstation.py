@@ -169,18 +169,18 @@ class specialEventStation(SES):
             morelink.click() # Move to details page using link from page
             sleep(5)
             """
-            All data of interest is in column 2 (td[2]), Op name is row 6,
-            op call in row 7 (tr[7]), etc.
+            All data of interest is in column 2 (td[2]), Op name is 
+            row 4 (tr[4]), op call in row 5 (tr[5]), etc.
+            NOTE:  tr[] index values adjusted for Issue #9
             """
             self.opname = dr.find_element(By.XPATH, '//tbody/tr[4]/td[2]').text
             self.opcall = dr.find_element(By.XPATH, '//tbody/tr[5]/td[2]').text
 
-            opaddress = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
+            opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
             self.opaddress=self.handleSplitlines(opaddress)
-            #self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
-            #self.opemail = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
-            #self.opphone = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
-
+            self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
+            self.opemail = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
+            self.opphone = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
             dr.quit()
             return True
         else:

@@ -1,0 +1,58 @@
+#!/usr/bin/bash
+year='2027'
+startdate='April 03, '$year
+enddate='April 04, '$year
+echo $0 $1
+new='moqp1x1ses.html'
+old='old_moqp1x1ses.html'
+saved="/home/pi/Public/moqplogs/$year/update1x1results"
+echo $saved
+cd /home/pi/Projects/status1x1
+
+#source this file to lock this process and prevent running again while
+# it is still active
+source ./pid.sh
+
+#record start of process
+
+echo "start of update. Process $PID_FILE locked: "; date
+if [ -f "$new" ]; then {
+    rm $old
+    mv $new $old
+}
+fi
+
+#Fetch allocated calls from 1x1cllsigns.org
+./sestationreport.py --startdate "$startdate" --enddate "$enddate"
+if [ -f "$new" ]; then {
+    #Skip the first 9 lines (up to the UPDATED tag)
+    diff <(tail -n +9 $new) <(tail -n +9 $old)
+    DIFFSTAT=$?
+    if [ $DIFFSTAT -ne 0 ]; then {
+        echo "Updates found, updating the file on w0ma.org..."
+        #Copy files to backup directory
+        if [ -f $saved/moqp1x1ses.html ]; then {
+            rm $saved/*.*
+        } 
+        fi
+        cp -p moqp1x1ses.html $saved/moqp1x1ses.html
+        cp -p operators.csv $saved/operators.csv
+        cp -p mostations.csv $saved/mostations.csv
+        cp -p showmestations.csv $saved/showmestations.csv
+
+        #Use scp to copy file to w0ma.org
+        scp ./moqp1x1ses.html w0ma@w0ma.org:mo_qso_party/results/$year/reports/.
+        scp ./moqp1x1ses.html moqp@moqp.org:mo_qso_party/results/$year/reports/.
+    }
+    else 
+        echo "No updates recorded."
+    fi    
+}
+else
+    echo "Fetch of updated call list failed to complete."
+fi
+
+#record end of process
+echo "end of update: "; date
+#Remove the .pid lock file
+rm -rf $PID_FILE

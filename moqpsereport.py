@@ -229,9 +229,9 @@ class moqpDBseReport(moqpseReport):
         #print(f'result = {result}')
         rl = [r[0] for r in result]
         if TNAME in rl:
-            print('{TNAME} Found...UPDATE')
+            print(f'{TNAME} Found...UPDATE')
         else:
-            print('{TNAME} NOT Found... - Initialize')
+            print(f'{TNAME} NOT Found... - Initialize')
             se = seStats()
             se._initTable(secalls=calls)
 

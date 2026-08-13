@@ -9,9 +9,8 @@ from mqpsesdefs import *
 from sestats import seStats
 import csv
 
-				
 class moqpseReport():
-    def __init__(self,  calls=None, 
+    def __init__(self,  calls=None,
                         sdate=None, edate=None,
                         headless=True,
                         searchlimit=15):
@@ -23,7 +22,7 @@ class moqpseReport():
             selist = calls
         else:
             print('single call')
-            selist = [calls]            
+            selist = [calls]
 
         self.stations = dict()
         for key in selist:
@@ -53,7 +52,7 @@ class moqpseReport():
         self.seStations[secall] = specialEventStation(callsign=secall,
                                                    Start_date=start_d,
                                                    End_date=end_d)
-                                    
+
     def makeTSV(self,award):
         if award.upper() == 'SHOWME':
             awlist = SHOWMELIST
@@ -81,20 +80,19 @@ class moqpseReport():
 			  './styles.css')
         d.closeHead()
         d.openBody()
-					 
+
         d.add_unformated_text(\
 		 """<h2 align='center'>{} Missouri QSO Party Special Event Stations</h2>""".format(YEAR))
 
         d.add_unformated_text("<center>")
-        d.addTimeTag(prefix='Updated: ') 
+        d.addTimeTag(prefix='Updated: ')
         d.add_unformated_text("</center>")
-		 
         d.add_unformated_text(\
 		"""
 		<p align="center">Thank You to our 1x1 Special Event Operators!<br>
 						  You make the contest more fun for the rest of us!</p>
 		""")
-	
+
         """
         Code to get SHOWME table date goes here
         """
@@ -107,9 +105,8 @@ class moqpseReport():
                             self.fix_none(self.stations[SHOWMELIST[i+1]].opcall),
                             self.fix_none(self.stations[SHOWMELIST[i+2]].opcall)] )
             i += 3
-        
 
-        d.addTable( tdata=showme, 
+        d.addTable( tdata=showme,
             header=True,
                     caption='SHOWME 1x1 Ops' )
 
@@ -125,12 +122,11 @@ class moqpseReport():
                             self.fix_none(self.stations[MOLIST[i+1]].opcall),
                             self.fix_none(self.stations[MOLIST[i+2]].opcall) ])
             i += 3
-        
 
-        d.addTable( tdata=showme, 
+        d.addTable( tdata=showme,
                 header=True,
                 caption='MISSOURI 1x1 Ops' )
-            
+
         d.add_unformated_text(\
         """
         <p align="center">
@@ -139,10 +135,10 @@ class moqpseReport():
         phrases for this year will be SHOW ME and MISSOURI. You will receive a
         handsome certificate if you complete one or both of the phrases!
         </p>
-                
-            <p align="center" style="font-family: Consolas, Terminal, Menlo, Arial">
+
+        <p align="center" style="font-family: Consolas, Terminal, Menlo, Arial">
         Example: n0S w0H k0O n0W k0M n0E
-        </p>	  
+        </p>
         """)
 
         d.closeBody()
@@ -158,10 +154,10 @@ class moqpseReport():
     def makeOplist(self, calls=SECALLS):
         """
         Show the details for each 1x1 op
-        """  
+        """
         if isinstance(calls, str):
             calls = [calls]
-            
+
         filename = 'operators.csv'
         with open(filename, 'w', newline='') as f:
             writer = csv.writer(f, delimiter='\t',
@@ -191,18 +187,16 @@ class moqpseReport():
         for secall in callList:
             self.get_seStation(secall, SD, ED)
             sleep(10)
-            
+
         with open('testdata.dat', 'w') as f:
             f.write(self.seStations)
-            
 
-            
         tsvList = self.makeTSV('SHOWME')
         return tsvList
 
 class moqpDBseReport(moqpseReport):
 
-    def __init__(self,  calls=None, 
+    def __init__(self,  calls=None,
                         sdate=None, edate=None,
                         headless=True,
                         searchlimit=15):
@@ -213,15 +207,21 @@ class moqpDBseReport(moqpseReport):
                             searchlimit)
         if calls:
             self.makeOplist(calls)
-            
-                            
 
     def makeOplist(self, calls=SECALLS):
         """
-        Write op list to new table in database
-        """  
-        if isinstance(calls, str): 
-            calls = [ calls ]       
+        Call parent method to generate .tsv file
+        """
+        super().makeOplist(calls)
+
+        """
+        Write op list to table in database.
+        If the table does not exist, create it, then add data.
+        If the table exists: update records that already exist,
+           add new data
+        """
+        if isinstance(calls, str):
+            calls = [ calls ]
         TNAME ='SESCALLS'
         db = MOQPDBUtils(HOSTNAME, USER, PW, DBNAME)
         #db.setCursorDict()
@@ -235,21 +235,7 @@ class moqpDBseReport(moqpseReport):
             se = seStats()
             se._initTable(secalls=calls)
 
-        filename = 'operators.csv'
-        with open(filename, 'w', newline='') as f:
-            writer = csv.writer(f, delimiter='\t',
-                            quotechar='|', quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(['CALL ','OP CALL','NAME',
-                             'ADDRESS','EMAIL','PHONE', 'EVENT'])
-            for call in calls:
-                print('Writing line for {}...'.format(call))
-                writer.writerow([call,
-                                self.stations[call].opcall,
-                                self.stations[call].opname,
-                                self.stations[call].opaddress,
-                                self.stations[call].opemail,
-                                self.stations[call].opphone,
-                                self.stations[call].sename])
+        for call in calls:
 
                 sesid = db.write_query(\
                    f"""UPDATE SESCALLS 

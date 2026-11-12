@@ -85,6 +85,19 @@ class specialEventStation(SES):
             exit()
  
         # Select the callsign search box
+        ##### DEBUG CODE ####
+        print("Current URL:", dr.current_url)
+        print("Page title:", dr.title)
+
+        inputs = dr.find_elements(By.TAG_NAME, "input")
+
+        for item in inputs:
+            print(
+                "ID:", item.get_attribute("id"),
+                "Name:", item.get_attribute("name"),
+                "Type:", item.get_attribute("type")
+            )
+        #### END DEBUG CODE ###
         sbox=dr.find_element(By.ID, 'callsign')
         #print(sbox)
         """

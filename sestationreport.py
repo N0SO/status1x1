@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os.path, sys
+import os.path, sys, subprocess
 from devmodpath.devmodpath import devModPath
 
 """
@@ -36,11 +36,20 @@ look up details for each 1x1 callsing in CALLSIGNLIST.
 def parseMyArgs():
     parser = argparse.ArgumentParser(\
                     description = DESCRIPTION, usage = USAGE)
+
     parser.add_argument(\
             "-c", "--calls", 
             help="""The list of callsigns to look up. Omit to 
             use the default SHOWME and MISSOURI lists.""",
             default= SECALLS)
+
+    parser.add_argument(\
+            "-f", "--fetch", 
+            help="""Fetch the list of callsigns to look up, but
+            don't process them yet. Put list list of calls to fetch
+            in calls, or leave calls empty to 
+            use the default SHOWME and MISSOURI lists.""",
+            action = 'store_true')
 
     parser.add_argument(\
             "-s", "--startdate", 
@@ -80,10 +89,26 @@ def parseMyArgs():
 
     args = parser.parse_args()
     return args
-    
-    
+
+def fetchCallList(calls):
+    for call in calls:
+        filename = (f'./callsigns/{call.lower()}.html')
+        url = (f'https://www.1x1callsigns.org/1x1search.php?callsign={call}')
+        print(f'Fetching list for call {call}...')
+        try:
+            subprocess.run(
+                ['wget', '-q', '-O', filename, url],
+                check=True
+            )
+        except subprocess.CalledProcessError:
+            print(f'  File list fetch  failed: {url}')
+
 if __name__ == '__main__':
     args = parseMyArgs()
+
+    if args.fetch:
+        fetchCallList(args.calls)
+        exit()
 
     if args.nodatabase:
         from moqpsereport import moqpseReport
@@ -97,7 +122,7 @@ if __name__ == '__main__':
                         args.startdate, 
                         args.enddate,
                         args.display)
-                        
+
     oplist = se.makeOplist(args.calls)
     tsvList = se.makeTSV('SHOWME')
     tsvList = se.makeTSV('MO')

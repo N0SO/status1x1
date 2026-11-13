@@ -4,6 +4,22 @@ A collection of classes and utilities used to generate the 1x1 Special
 Event Station list for the Missouri QSO Party.
 
 Update History:
+* Fri Nov 13 2026 Mike Heitmann, N0SO <n0so@arrl.net>
+- V2.1.0 - Test build of version 2.10. Adds:
+-          Fixes for Issues 9 and 10.
+-          Eliminates need for using selenium. The
+-          host website added cloudflare challenges,
+-          they were too hard to keep up with, but
+-          interestingly, wget works! SO the code has been
+-          refactored accordingly. It's not perfect, but
+-          when the challenges pop up, switching to a
+-          web browser overcomes it. The process is now
+-          two parts:
+-            1. fetching of a list of calls for each of
+-               our 27 1x1 calls.
+-            2. Parsing each list of calls to filter out
+-               the MOQP event calls for the current year.
+-         In spare time, this utility really needs a rewrite.
 * Fri May 23 2025 Mike Heitmann, N0SO <n0so@arrl.net>
 - V2.0.1 - Release of version 2.0.1. Adds:
 -          Persistance of data in the database as table SESCALLS.
@@ -44,4 +60,4 @@ Update History:
 - V0.0.1 - Inital release. Also, retirement day for me!
 - Code is pretty crude, but it works.
 """
-VERSION='2.0.1'
+VERSION='2.1.0'

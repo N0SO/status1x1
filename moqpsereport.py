@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
+from datetime import datetime
 from specialeventstation import specialEventStation
 from time import sleep
 from htmlutils.htmldoc import *
 from moqputils.configs.moqpdbconfig import *
-#from moqpdbconfig import *
 from moqputils.moqpdbutils import *
 from mqpsesdefs import *
 from sestats import seStats
@@ -84,8 +84,12 @@ class moqpseReport():
         d.add_unformated_text(\
 		 """<h2 align='center'>{} Missouri QSO Party Special Event Stations</h2>""".format(YEAR))
 
+        now = datetime.utcnow()
+        # Format the datetime object into YYYY:MM:DD HH:MM
+        formatted_timestamp = now.strftime("%Y:%m:%d %H:%M")
         d.add_unformated_text("<center>")
-        d.addTimeTag(prefix='Updated: ')
+        d.add_unformated_text(f"<br>Updated:  {formatted_timestamp} UTC</p>")
+        #d.addTimeTag(prefix='Updated: ')
         d.add_unformated_text("</center>")
         d.add_unformated_text(\
 		"""

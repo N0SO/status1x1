@@ -1,260 +1,220 @@
 #!/usr/bin/env python3
+
+#!/usr/bin/env python3
+
 from ses import SES
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from time import sleep, strftime
-from datetime import datetime
-import sys, os
-"""
-Time format is Month day, YEAR to match the 1x1 source web page.
-April 4, 2022 for example
-"""
-TIMEFMT='%Y-%m-%d'
-SEARCH1X1URL = 'https://www.1x1callsigns.org/1x1search.php'
+from bs4 import BeautifulSoup
+from datetime import datetime, date
+from pathlib import Path
+from urllib.parse import urlparse, parse_qs
+import os
+
+TIMEFMT = '%Y-%m-%d'
+
 
 class specialEventStation(SES):
+
     def __init__(self,
                  callsign=None,
                  Start_date=None,
                  End_date=None,
                  headless=True,
-                 searchlimit=15):
-        """
-        Call parent class  __init__() method to initialize  structure
-        """
+                 searchlimit=15,
+                 search_dir='./callsigns',
+                 details_dir='./details'):
+
         super().__init__(callsign, Start_date, End_date)
 
-        if (self.callsign and \
-              self.tstart and \
-              self.tend):
-                self.get_seCall(self.callsign,
-                                self.tstart,
-                                self.tend,
-                                headless,
-                                searchlimit)
+        self.allocations = []
 
-    def get_seCall(self, call, start_date, end_date, 
-                         headless = True,
-                         searchlimit = 15):
-        """
-        Look up who holds the Special Event 1x1 callsign
-        specified in call between the dates start_date and
-        end_date. Populate the self.opxxxx data in the object.
-        By default, it searches the first 15 records. To search more,
-        add:
-         searchlimit = nn (where nn is the number of records to search).
-        Return True if successful, or False if not found.
+        self.search_dir = Path(search_dir)
+        self.details_dir = Path(details_dir)
 
-        By default the code runs on a 'virtual browser', so no display
-        is available (or required). This means the code may be executed
-        in a terminal or script. If a display is needed for debug or
-        demo, add:
-         headless=False
-        """
+        if self.callsign and self.tstart and self.tend:
+            self.get_seCall(self.callsign,
+                            self.tstart,
+                            self.tend)
+
+    def to_date(self, value):
+        """Convert a string, datetime, or date to a date object."""
+
+        if isinstance(value, datetime):
+            return value.date()
+
+        if isinstance(value, date):
+            return value
+
+        return datetime.strptime(value, TIMEFMT).date()
+
+    def get_seCall(self, call, start_date, end_date,
+                   headless=True, searchlimit=15):
+
         secall = call.upper().strip()
-        """
-        Run headless (no display required)  unless the optional
-        headless parameter is set False by the caller.
-        """
-        chrome_options = Options()
-        if (headless):
-            chrome_options.add_argument("--headless")
-            # chrome_options.headless = True # also works
-        
-        # Set the path to the Chromedriver
-        DRIVER_PATH = '/usr/bin/chromedriver'
-        chrome_service = Service(DRIVER_PATH) 
 
-        dr = webdriver.Chrome(options=chrome_options, 
-                              service=chrome_service)
-        
-        # Navigate to the callsign search page
-        try:
-            print('Searching {} for {}...'.format(SEARCH1X1URL, secall))
-            dr.get(SEARCH1X1URL)
-            sleep(5)
-        except:
-            print('Exception...')
-            print('Search Timeout - try again')
-            exit()
- 
-        # Select the callsign search box
-        ##### DEBUG CODE ####
-        print("Current URL:", dr.current_url)
-        print("Page title:", dr.title)
+        contest_start = self.to_date(start_date)
+        contest_end = self.to_date(end_date)
 
-        inputs = dr.find_elements(By.TAG_NAME, "input")
+        # Locate the saved search-results file
+        html_file = self.search_dir / f'{secall.lower()}.html'
 
-        for item in inputs:
-            print(
-                "ID:", item.get_attribute("id"),
-                "Name:", item.get_attribute("name"),
-                "Type:", item.get_attribute("type")
-            )
-        #### END DEBUG CODE ###
-        sbox=dr.find_element(By.ID, 'callsign')
-        #print(sbox)
-        """
-        Sending the target call to search field
-        NOTE: Chromium and FireFox drivers have trouble sending some 
-            characters (at least the RPI versions do). Most notably
-            the 'S, E, R characters we use in our SES callsigns. 
-            It would not be passed to the input box
-            in the form. The work around (found on StackOverflow) was
-            to call a javascript snippit to enter the text in the
-            callsign search box. Use the execute_script method 
-            instead of send_keys() method for the work around.
-        """
-        sbox.click()
-        sbox.clear()
-        #sbox.send_keys(secall)
-        dr.execute_script("arguments[0].value = arguments[1];", sbox, secall) 
-        sleep(1)
-        #find and click the search button next to the callsign text box.
-        search=dr.find_element(By.ID,'startd')
-        search.click()
-        sleep(1)
-
-        #Find the table that contains the search results.
-        #no_match = True
-        #while True:
-        r=0
-        match = False
-        try:
-            table=dr.find_element(By.TAG_NAME, 'table')
-            #print('raw table=\n{}'.format(table.text))
-        except:
-            """
-            If a table is not found, this callsign is not in the
-            database.  Exit
-            """
-            #print('table not found...')
-            table = None
-            
-            
-        if table:
-            """
-            Loop through the table rows searching for a date that falls
-            within the limits defined by start_date and end_date.
-            """
-            rows=table.find_elements(By.TAG_NAME,'tr')
-            #print('row count={}'.format(len(rows)))
-            for row in rows:
-                cells = row.find_elements(By.TAG_NAME, 'td')
-                #print('cell count = {}'.format(len(cells)))
-                """
-                If 5 or more cells:
-                  cell[0] = secall
-                  cell[1] = start date
-                  call[2] = end date
-                  call[3] = the more info (on operator) link.
-                Compare these to what was passed in.
-                """
-                if len(cells) >= 5:
-                    rcall=cells[0].text
-                    st=datetime.strptime(cells[1].text, TIMEFMT)
-                    et=datetime.strptime(cells[2].text, TIMEFMT)
-                    sename=cells[3].text
-                    morelink=cells[4]
-                    #print('call: {}, start:{}, end:{}, more:{}'.format(rcall, st, et, sename, morelink.text))
-
-                    if ((start_date>=st) and (start_date<=et)) or\
-                          ((end_date>=st) and (end_date<=et)):
-                        print('Match for {} found in row {}...'.format(\
-                                      secall, r))
-                        match = True
-                        break
-                r+=1
-        else:
-            #print('No table found...')
-            pass
-
-        if match:
-            self.startdate=st
-            self.enddate=et
-            self.sename=sename
-            morelink.click() # Move to details page using link from page
-            sleep(5)
-            """
-            All data of interest is in column 2 (td[2]), Op name is 
-            row 4 (tr[4]), op call in row 5 (tr[5]), etc.
-            NOTE:  tr[] index values adjusted for Issue #9
-            """
-            self.opname = dr.find_element(By.XPATH, '//tbody/tr[4]/td[2]').text
-            self.opcall = dr.find_element(By.XPATH, '//tbody/tr[5]/td[2]').text
-
-            opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
-            self.opaddress=self.handleSplitlines(opaddress)
-            self.opaddress = dr.find_element(By.XPATH, '//tbody/tr[8]/td[2]').text
-            self.opemail = dr.find_element(By.XPATH, '//tbody/tr[6]/td[2]').text
-            self.opphone = dr.find_element(By.XPATH, '//tbody/tr[7]/td[2]').text
-            dr.quit()
-            return True
-        else:
-            # No match found
-            print('No match found for call {}'.format(self.callsign))
-            dr.quit()
+        if not html_file.exists():
+            print(f'Search file not found: {html_file}')
             return False
-    
-    def handleSplitlines(self, sp):
-        if type(sp) is str:
-            rp=''
-            t = sp.splitlines()
-            ln=len(t)
-            i=0
-            for lx in t: 
-                i += 1
-                rp = rp+lx
-                if i < ln: rp += os.sep
-        else:
-            rp=sp
-        return rp
-        
-    def send_keys(self, el: WebElement, keys: str):
-        """
-        Send string to an element using the webdriver send_keys method.
-        NOTE: This does not work for the chromium driver on an RPI.
-        Use the write_to_element() method below as a work around.
-        """
-        for i in range(len(keys)):
-            el.send_keys(keys[i])
-            sleep(1)
-        el.send_keys(Keys.ENTER)
+
+        print(f'Searching saved results for {secall}...')
+
+        with open(html_file, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+
+        table = soup.find('table')
+
+        if not table:
+            print(f'No results table found for {secall}')
+            return False
+
+        # Examine every allocation in the search-results table
+        for row in table.find_all('tr'):
+
+            cells = row.find_all('td')
+
+            if len(cells) < 5:
+                continue
+
+            try:
+                allocation_call = cells[0].get_text(strip=True)
+                allocation_start = self.to_date(
+                    cells[1].get_text(strip=True))
+                allocation_end = self.to_date(
+                    cells[2].get_text(strip=True))
+                event = cells[3].get_text(strip=True)
+
+            except ValueError:
+                continue
+
+            link = cells[4].find('a', href=True)
+
+            if not link:
+                continue
+
+            # Check inclusive date overlap
+            if (allocation_start <= contest_end and
+                    allocation_end >= contest_start):
+
+                query = parse_qs(
+                    urlparse(link['href']).query
+                )
+
+                allocation_id = query.get('byid', [None])[0]
+
+                if not allocation_id:
+                    print(f'No allocation ID for {event}')
+                    continue
+
+                detail_file = (
+                    self.details_dir /
+                    f'{allocation_call}_{allocation_id}.html'
+                )
+
+                print(f'Match: {allocation_call} - {event}')
+
+                if not detail_file.exists():
+                    print(f'Detail file missing: {detail_file}')
+                    continue
+
+                details = self.read_details(detail_file)
+
+                if not details:
+                    print(f'Unable to read details: {detail_file}')
+                    continue
+
+                # Combine search and detail-page information
+                allocation = {
+                    'call': allocation_call,
+                    'start': allocation_start,
+                    'end': allocation_end,
+                    'event': event,
+                    'id': allocation_id,
+                    'detail_file': str(detail_file),
+                    **details
+                }
+
+                self.allocations.append(allocation)
+
+        if not self.allocations:
+            print(f'No matching allocation found for {secall}')
+            return False
+
+        # Populate original SES attributes from first match
+        first = self.allocations[0]
+
+        self.startdate = datetime.combine(first['start'],
+                                          datetime.min.time())
+        self.enddate = datetime.combine(first['end'],
+                                        datetime.min.time())
+
+        self.sename = first['event']
+        self.opname = first.get('opname')
+        self.opcall = first.get('opcall')
+        self.opaddress = first.get('opaddress')
+        self.opemail = first.get('opemail')
+        self.opphone = first.get('opphone')
+
         return True
 
-    def write_to_element(self, driver, xpath, input_string): 
-        """
-        NOTE: Chromium and FireFox drivers have trouble sending some 
-            characters (at least the RPI versions do). Most notably
-            the 'S' character. It would not be passed to the input box
-            in the form. The work around (found on StackOverflow) was
-            to call a javascript snippit to enter the text in the
-            callsign search box. Use the method write_to_element()
-            instead of send_keys() method for the work around.
-        """
-        el=driver.find_element(By.ID, xpath)
-        js_command = f'document.evaluate(\'{xpath}\', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.value = \'{input_string}\';'
-        driver.execute_script(js_command)
-        sleep(2)
-        el.send_keys(Keys.ENTER)
-        return True
-        
+    def read_details(self, html_file):
+        """Read the two-column allocation detail table."""
+
+        with open(html_file, 'r', encoding='utf-8') as f:
+            soup = BeautifulSoup(f, 'html.parser')
+
+        details = {}
+
+        for row in soup.find_all('tr'):
+
+            cells = row.find_all('td')
+
+            if len(cells) < 2:
+                continue
+
+            field = cells[0].get_text(strip=True).lower()
+            value = cells[1].get_text(separator=os.linesep,
+                                      strip=True)
+
+            if field == 'requestor':
+                details['opname'] = value
+
+            elif field == 'requestor call':
+                details['opcall'] = value
+
+            elif field == 'requestor addr':
+                details['opaddress'] = value
+
+            elif field == 'email':
+                details['opemail'] = value
+
+            elif field == 'phone':
+                details['opphone'] = value
+
+        return details
+
+
 if __name__ == '__main__':
-    
-    if len(sys.argv) >=2:
+
+    import sys
+
+    if len(sys.argv) >= 2:
         callsign = sys.argv[1].upper()
     else:
-        callsign = 'N0H'
-    
-    sestation = specialEventStation(callsign,
-                                    Start_date='April 3, 2022',
-                                    End_date='April 4, 2022')
-                                    
+        callsign = 'K0S'
+
+    sestation = specialEventStation(
+        callsign,
+        Start_date='April 03, 2027',
+        End_date='April 04, 2027'
+    )
+
     sestation.show_params()
-    print(vars(sestation))
+
+    print('\nMatching allocations:')
+    for allocation in sestation.allocations:
+        print(allocation)

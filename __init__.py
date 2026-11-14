@@ -4,8 +4,16 @@ A collection of classes and utilities used to generate the 1x1 Special
 Event Station list for the Missouri QSO Party.
 
 Update History:
+* Sat Nov 14 2026 Mike Heitmann, N0SO <n0so@arrl.net>
+- V2.1.1 - Test build of version 2.1.1. Adds:
+-        - Tested fix for Issue #9
+-        - Tested fix for Issue #10
+-        - Added code to place temorary working files to the /tmp
+-          directory and remove them after the process completes.
+-          The whole thing runs much faster too. This is ready to
+-          merge back to the main branch.
 * Fri Nov 13 2026 Mike Heitmann, N0SO <n0so@arrl.net>
-- V2.1.0 - Test build of version 2.10. Adds:
+- V2.1.0 - Test build of version 2.1.0. Adds:
 -          Fixes for Issues 9 and 10.
 -          Eliminates need for using selenium. The
 -          host website added cloudflare challenges,

@@ -40,8 +40,7 @@ if [ -f "$new" ]; then {
         cp -p mostations.csv $saved/mostations.csv
         cp -p showmestations.csv $saved/showmestations.csv
 
-        #Use scp to copy file to w0ma.org
-        scp ./moqp1x1ses.html w0ma@w0ma.org:mo_qso_party/results/$year/reports/.
+        #Use scp to copy file to moqp.org
         scp ./moqp1x1ses.html moqp@moqp.org:mo_qso_party/results/$year/reports/.
     }
     else 

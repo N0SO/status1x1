@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from tempfile import TemporaryDirectory
+from pathlib import  Path
 import os.path, sys, subprocess
 from devmodpath.devmodpath import devModPath
 
@@ -90,11 +92,21 @@ def parseMyArgs():
     args = parser.parse_args()
     return args
 
-def fetchCallList(calls):
+def fetchCallList(calls, tempdir=None):
+    """
+    Fetch a list of the most recent holders of each call in the list
+    'calls'. Save the list in directory ./callsigns as an html table
+    """
+    if tempdir:
+        dirpath = Path(f'{tempdir}/callsigns')
+    else:
+        dirpath = './callsigns'
+    Path(dirpath).mkdir(parents=True, exist_ok=True)
+
     for call in calls:
-        filename = (f'./callsigns/{call.lower()}.html')
+        filename = (f'{dirpath}/{call.lower()}.html')
         url = (f'https://www.1x1callsigns.org/1x1search.php?callsign={call}')
-        print(f'Fetching list for call {call}...')
+        print(f'Fetching list for call {call}, to file {filename}...')
         try:
             subprocess.run(
                 ['wget', '-q', '-O', filename, url],
@@ -104,26 +116,35 @@ def fetchCallList(calls):
             print(f'  File list fetch  failed: {url}')
 
 if __name__ == '__main__':
-    args = parseMyArgs()
+    with TemporaryDirectory(prefix="1x1-") as d:
+        tempdir = Path(d)
 
-    if args.fetch:
-        fetchCallList(args.calls)
-        exit()
+        print (f'Temp files  path is {d}')
 
-    if args.nodatabase:
-        from moqpsereport import moqpseReport
-        se=moqpseReport(args.calls, 
+        args = parseMyArgs()
+
+        fetchCallList(args.calls, tempdir)
+        if args.fetch:
+            exit()
+
+        if args.nodatabase:
+            from moqpsereport import moqpseReport
+            se=moqpseReport(args.calls, 
                         args.startdate, 
                         args.enddate,
                         args.display)
-    else:
-        from moqpsereport import moqpDBseReport
-        se=moqpDBseReport(args.calls, 
+        else:
+            from moqpsereport import moqpDBseReport
+            se=moqpDBseReport(args.calls, 
                         args.startdate, 
                         args.enddate,
                         args.display)
 
-    oplist = se.makeOplist(args.calls)
-    tsvList = se.makeTSV('SHOWME')
-    tsvList = se.makeTSV('MO')
-    htmlList = se.makeHTML()
+        oplist = se.makeOplist(args.calls)
+        tsvList = se.makeTSV('SHOWME')
+        tsvList = se.makeTSV('MO')
+        htmlList = se.makeHTML()
+
+        print (tempdir.is_dir())
+        print(list(tempdir.iterdir()))
+    print(tempdir.exists())

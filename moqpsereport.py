@@ -13,7 +13,8 @@ class moqpseReport():
     def __init__(self,  calls=None,
                         sdate=None, edate=None,
                         headless=True,
-                        searchlimit=15):
+                        searchlimit=15,
+                        tempdir=None):
         if calls == None:
             print('default')
             selist = SECALLS
@@ -31,7 +32,8 @@ class moqpseReport():
                             Start_date=sdate,
                             End_date=edate,
                             headless=headless,
-                            searchlimit=searchlimit)})
+                            searchlimit=searchlimit,
+                            tempdir=tempdir)})
         """    
         if calls and sdate and edate:
             self.appMain(selist, sdate, edate)
@@ -89,7 +91,6 @@ class moqpseReport():
         formatted_timestamp = now.strftime("%Y:%m:%d %H:%M")
         d.add_unformated_text("<center>")
         d.add_unformated_text(f"<br>Updated:  {formatted_timestamp} UTC</p>")
-        #d.addTimeTag(prefix='Updated: ')
         d.add_unformated_text("</center>")
         d.add_unformated_text(\
 		"""
@@ -203,7 +204,8 @@ class moqpDBseReport(moqpseReport):
     def __init__(self,  calls=None,
                         sdate=None, edate=None,
                         headless=True,
-                        searchlimit=15):
+                        searchlimit=15,
+                        tempdir=None):
         super().__init__(   calls,
                             sdate,
                             edate,

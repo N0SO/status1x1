@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-#!/usr/bin/env python3
-
 from ses import SES
 from bs4 import BeautifulSoup
 from datetime import datetime, date
@@ -20,6 +18,7 @@ class specialEventStation(SES):
                  End_date=None,
                  headless=True,
                  searchlimit=15,
+                 tempdir=None,
                  search_dir='./callsigns',
                  details_dir='./details'):
 
@@ -27,8 +26,12 @@ class specialEventStation(SES):
 
         self.allocations = []
 
-        self.search_dir = Path(search_dir)
-        self.details_dir = Path(details_dir)
+        if tempdir:
+            self.search_dir = Path(f'{tempdir}/{search_dir}')
+            self.details_dir = Path(f'{tempdir}/{details_dir}')
+        else:
+            self.search_dir = Path(search_dir)
+            self.details_dir = Path(details_dir)
 
         if self.callsign and self.tstart and self.tend:
             self.get_seCall(self.callsign,

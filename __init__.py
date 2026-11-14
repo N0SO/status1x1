@@ -68,4 +68,4 @@ Update History:
 - V0.0.1 - Inital release. Also, retirement day for me!
 - Code is pretty crude, but it works.
 """
-VERSION='2.1.0'
+VERSION='2.1.1'

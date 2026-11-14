@@ -1,4 +1,4 @@
-# sestationreport V2.0.0
+# sestationreport V2.1.1
 Web Scraping Python app to collect info for this year's Missouri QSO 
 Party 1x1 SE Stations for SHOWME and MISSOURI awards. The  data is 
 collected from the website 1x1callsigns.org and saved to the current
@@ -20,6 +20,9 @@ optional arguments:
   -c CALLS, --calls CALLS
                         The list of callsigns to look up. Omit to use the default SHOWME and MISSOURI
                         lists.
+  -f, --fetch           Fetch the list of 1x1 callsigns to look up, but don't process them yet. Put 
+                        list of 1x1 callsigns  to fetch in CALLS, or leave CALLS  empty to use the 
+                        default SHOWME and MISSOURI lists.
   -s STARTDATE, --startdate STARTDATE
                         The starting date for the special event. Omit this to use the default dates in
                         mqpsesdefs.py
@@ -35,7 +38,7 @@ optional arguments:
   -v, --version         Display version and exit
 ```
 
-V2.0.0 adds mqpsestats - Intended for us after logs have been submitted,
+V2.1.1 adds mqpsestats - Intended for us after logs have been submitted,
 statistics are gathered to measure performance of each 1x1 station. The
 data may be displayed in CSV and HTML format.
 
@@ -69,15 +72,12 @@ optional arguments:
 
 ## To insall:
 
-1. Needs the Selenium package
-	- sudo pip3 install selenium  (I would check to see if there was an apt package first)
+1. As of version 2.1.1, the Selenium package and Chromium Browser/Driver packages are no longer used.
 
-2. Needs the Chromium Browser and Chromium Driver packages:
-	- sudo apt-get install chromium-browser
-	- sudo apt-get install chromium-chromedriver
+2. As of version 2.1.1, wget calls fetch all data, and the Beautiful Soup html parsing package parses
+   the files to generate the necessary reports.
+	- sudo apt install python3-bs4 
 
 3. Also uses modules from the moqputils collection:
  	- moqputils
  	- htmlutils
-   
-   

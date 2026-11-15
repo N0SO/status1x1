@@ -48,8 +48,8 @@ def parseMyArgs():
     parser.add_argument(\
             "-f", "--fetch", 
             help="""Fetch the list of callsigns to look up, but
-            don't process them yet. Put list list of calls to fetch
-            in calls, or leave calls empty to 
+            don't process them yet. Put list of calls to fetch
+            in --calls, or leave --calls empty to 
             use the default SHOWME and MISSOURI lists.""",
             action = 'store_true')
 
@@ -83,6 +83,12 @@ def parseMyArgs():
                     persisting the results in the MOQP database.""",
             default=False, action = 'store_true')
 
+    parser.add_argument(\
+            "-p", "--pause-before-delete", 
+            help="""Pause before deleting the temporary working files
+                    in /tmp/1x1-xxxxx. While it's paused you can examin
+                    the working files for debugging, etc.""",
+            default=False, action = 'store_true')
 
     parser.add_argument('-v', '--version',
                         help='Display version and exit',
@@ -92,16 +98,11 @@ def parseMyArgs():
     args = parser.parse_args()
     return args
 
-def fetchCallList(calls, tempdir=None):
+def fetchCallList(calls, dirpath):
     """
     Fetch a list of the most recent holders of each call in the list
     'calls'. Save the list in directory ./callsigns as an html table
     """
-    if tempdir:
-        dirpath = Path(f'{tempdir}/callsigns')
-    else:
-        dirpath = './callsigns'
-    Path(dirpath).mkdir(parents=True, exist_ok=True)
 
     for call in calls:
         filename = (f'{dirpath}/{call.lower()}.html')
@@ -118,33 +119,49 @@ def fetchCallList(calls, tempdir=None):
 if __name__ == '__main__':
     with TemporaryDirectory(prefix="1x1-") as d:
         tempdir = Path(d)
+        #tempdir = Path('/tmp/dbtemp')
+        # Create working folders in the new temp directory
+        if tempdir:
+            dirpath = Path(f'{tempdir}/callsigns')
+            detailpath = Path(f'{tempdir}/details')
+        else:
+            dirpath = Path('./callsigns')
+            detailpath  = Path('./details')
 
-        print (f'Temp files  path is {d}')
+        Path(dirpath).mkdir(parents=True, exist_ok=True)
+        Path(detailpath).mkdir(parents=True, exist_ok=True)
+
+        print (f'Temp files  path is {tempdir}')
 
         args = parseMyArgs()
 
-        fetchCallList(args.calls, tempdir)
+        fetchCallList(args.calls, dirpath)
         if args.fetch:
             exit()
 
         if args.nodatabase:
             from moqpsereport import moqpseReport
-            se=moqpseReport(args.calls, 
-                        args.startdate, 
+            se=moqpseReport(args.calls,
+                        args.startdate,
                         args.enddate,
-                        args.display)
+                        args.display,
+                        tempdir=tempdir)
         else:
             from moqpsereport import moqpDBseReport
-            se=moqpDBseReport(args.calls, 
-                        args.startdate, 
-                        args.enddate,
-                        args.display)
+            se=moqpDBseReport(args.calls,
+                              args.startdate,
+                              args.enddate,
+                              args.display,
+                              tempdir=tempdir)
 
         oplist = se.makeOplist(args.calls)
         tsvList = se.makeTSV('SHOWME')
         tsvList = se.makeTSV('MO')
         htmlList = se.makeHTML()
 
-        print (tempdir.is_dir())
-        print(list(tempdir.iterdir()))
-    print(tempdir.exists())
+        # Use the -p or --pause-before-delete option to pause
+        # before the temporary files used in processing are
+        # deleted. Usefull for debugging!
+        if args.pause_before_delete:
+            breakpoint()
+

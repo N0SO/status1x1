@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 from datetime import datetime, date
 from pathlib import Path
 from urllib.parse import urlparse, parse_qs
+import subprocess
+from urllib.parse import urljoin
 import os
 
 TIMEFMT = '%Y-%m-%d'
@@ -58,7 +60,7 @@ class specialEventStation(SES):
         contest_end = self.to_date(end_date)
 
         # Locate the saved search-results file
-        html_file = self.search_dir / f'{secall.lower()}.html'
+        html_file = Path(f'{self.search_dir}/{secall.lower()}.html')
 
         if not html_file.exists():
             print(f'Search file not found: {html_file}')
@@ -118,10 +120,27 @@ class specialEventStation(SES):
                     f'{allocation_call}_{allocation_id}.html'
                 )
 
+                print(f'{detail_file=}')
+
                 print(f'Match: {allocation_call} - {event}')
 
                 if not detail_file.exists():
-                    print(f'Detail file missing: {detail_file}')
+
+                    detail_url = urljoin(
+                       'https://www.1x1callsigns.org/1x1search.php',
+                        link['href']
+                        )
+
+                print(f'Downloading details from {detail_url}')
+
+                try:
+                    subprocess.run(
+                        ['wget', '-q', '-O', str(detail_file), detail_url],
+                          check=True
+                        )
+
+                except subprocess.CalledProcessError:
+                    print(f'Detail download failed: {detail_url}')
                     continue
 
                 details = self.read_details(detail_file)

@@ -26,6 +26,7 @@ class moqpseReport():
             selist = [calls]
 
         self.stations = dict()
+
         for key in selist:
             self.stations.update({key:\
                             specialEventStation(callsign=key,
@@ -210,7 +211,8 @@ class moqpDBseReport(moqpseReport):
                             sdate,
                             edate,
                             headless,
-                            searchlimit)
+                            searchlimit,
+                            tempdir)
         if calls:
             self.makeOplist(calls)
 

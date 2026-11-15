@@ -4,6 +4,10 @@ A collection of classes and utilities used to generate the 1x1 Special
 Event Station list for the Missouri QSO Party.
 
 Update History:
+* Sat Nov 15 2026 Mike Heitmann, N0SO <n0so@arrl.net>
+- V2.1.2 - Release build. Adds:
+-        - Added a pause option to pause before deleting
+-          temporary files. Useful for debug.
 * Sat Nov 14 2026 Mike Heitmann, N0SO <n0so@arrl.net>
 - V2.1.1 - Test build of version 2.1.1. Adds:
 -        - Tested fix for Issue #9
@@ -68,4 +72,4 @@ Update History:
 - V0.0.1 - Inital release. Also, retirement day for me!
 - Code is pretty crude, but it works.
 """
-VERSION='2.1.1'
+VERSION='2.1.2'
